@@ -1,0 +1,41 @@
+.shop-by-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  padding: 24px 0;
+}
+
+.filter-group h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.filter-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-group li {
+  margin-bottom: 10px;
+}
+
+.filter-group label {
+  cursor: pointer;
+}
+
+.filter-group input {
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .shop-by-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .shop-by-container {
+    grid-template-columns: 1fr;
+  }
+}
