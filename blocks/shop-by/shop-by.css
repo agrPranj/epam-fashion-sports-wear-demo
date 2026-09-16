@@ -28,13 +28,13 @@
   margin-right: 8px;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .shop-by-container {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .shop-by-container {
     grid-template-columns: 1fr;
   }
