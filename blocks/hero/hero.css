@@ -121,7 +121,7 @@ main > .section.velocity-hero-section > .hero-wrapper {
 }
 
 .hero.split .hero-content > .hero-eyebrow {
-  margin: 0 0 0px;
+  margin: 0;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -130,7 +130,7 @@ main > .section.velocity-hero-section > .hero-wrapper {
 
 .hero.split h1 {
   max-width: 10ch;
-  margin: 0 0 0px;
+  margin: 0;
   color: var(--hero-text);
   font-size: clamp(40px, 5vw, 88px);
   font-weight: 700;
