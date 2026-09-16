@@ -1,26 +1,29 @@
-/* Shared hero wrapper */
+/* ==========================================================
+   SHARED WRAPPER
+   ========================================================== */
+
 .hero-container .hero-wrapper {
-  max-width: unset;
+  max-width: none;
   padding: 0;
 }
 
 /* ==========================================================
    DEFAULT HERO
-   Preserves the original background-image presentation.
-   Applies only when the block does not have the split variant.
+   Retains the original background-image hero for blocks
+   authored as "Hero", without the Split variant.
    ========================================================== */
 
 .hero:not(.split) {
   position: relative;
   isolation: isolate;
-  padding: 40px 24px;
   min-height: 300px;
+  padding: 40px 24px;
 }
 
 .hero:not(.split) h1 {
   max-width: 1200px;
-  margin-left: auto;
   margin-right: auto;
+  margin-left: auto;
   color: var(--background-color);
 }
 
@@ -28,37 +31,55 @@
   position: absolute;
   z-index: -1;
   inset: 0;
+  display: block;
   box-sizing: border-box;
 }
 
 .hero:not(.split) img {
-  object-fit: cover;
+  display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
 /* ==========================================================
-   SPLIT HERO
-   Authoring: Hero (Split), using labeled field rows.
+   SPLIT HERO SECTION
+   Removes the standard EDS content width and side padding.
+   Keep the hero in its own authored section.
    ========================================================== */
 
 main > .section.velocity-hero-section {
   margin: 0 0 48px;
+  padding: 0;
 }
 
 main > .section.velocity-hero-section > .hero-wrapper {
+  box-sizing: border-box;
+  width: 100%;
   max-width: none;
+  margin: 0;
   padding: 0;
 }
 
+/* ==========================================================
+   SPLIT HERO BASE
+   ========================================================== */
+
 .hero.split {
-  --hero-background: #102a43;
+  --hero-background: #31689e;
   --hero-text: #fff;
-  --hero-muted: #dbe7f0;
+  --hero-muted: #e8f0f7;
   --hero-accent: #c2410c;
   --hero-accent-hover: #9a3412;
+  --hero-image-position: right center;
 
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
   padding: 0;
+  border: 0;
   background-color: var(--hero-background);
   color: var(--hero-text);
 }
@@ -66,58 +87,83 @@ main > .section.velocity-hero-section > .hero-wrapper {
 .hero.split .hero-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  max-width: 1440px;
-  margin: 0 auto;
+  align-items: stretch;
+  gap: 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 .hero.split .hero-content,
 .hero.split .hero-media {
+  box-sizing: border-box;
   min-width: 0;
+  margin: 0;
 }
 
-/* Content */
+/* ==========================================================
+   TEXT PANEL
+   ========================================================== */
+
 .hero.split .hero-content {
   align-self: center;
-  padding: 32px 24px 40px;
+  padding: 36px 24px 44px;
 }
 
 .hero.split .hero-content > p {
   max-width: 44ch;
-  margin: 0 0 20px;
+  margin: 0 0 24px;
   color: var(--hero-muted);
   font-size: 17px;
   line-height: 1.6;
 }
 
 .hero.split .hero-content > .hero-eyebrow {
-  margin: 0 0 16px;
-  font-size: 13px;
+  margin: 0 0 0px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .hero.split h1 {
   max-width: 10ch;
-  margin: 0 0 20px;
+  margin: 0 0 0px;
   color: var(--hero-text);
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(40px, 5vw, 88px);
   font-weight: 700;
-  line-height: 1.05;
-  text-transform: uppercase;
+  line-height: 1.08;
   overflow-wrap: break-word;
+  text-transform: uppercase;
 }
 
 .hero.split .hero-content > .button-wrapper {
-  margin: 12px 0 0;
+  margin: 16px 0 0;
 }
 
-/* Image: above the text on mobile */
+/* ==========================================================
+   IMAGE PANEL
+   Mobile: above the text.
+   Desktop: fills the entire right column.
+   ========================================================== */
+
 .hero.split .hero-media {
   position: relative;
   order: -1;
+  align-self: stretch;
   min-height: 280px;
+  padding: 0;
+  border: 0;
   overflow: hidden;
+  line-height: 0;
+}
+
+/* Defensive reset if an image paragraph remains in the markup. */
+.hero.split .hero-media p {
+  margin: 0;
+  padding: 0;
 }
 
 .hero.split .hero-media picture {
@@ -125,32 +171,53 @@ main > .section.velocity-hero-section > .hero-wrapper {
   z-index: 0;
   inset: 0;
   display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .hero.split .hero-media img {
   position: absolute;
   inset: 0;
   display: block;
+  box-sizing: border-box;
   width: 100%;
   max-width: none;
   height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
   object-fit: cover;
-  object-position: center;
+  object-position: var(--hero-image-position);
 }
 
-/* Links and buttons */
+/* ==========================================================
+   LINKS AND CTA BUTTONS
+   ========================================================== */
+
 .hero.split a:any-link {
   color: var(--hero-text);
 }
 
 .hero.split a.button:any-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
   min-height: 48px;
-  padding: 12px 24px;
+  margin: 0;
+  padding: 14px 28px;
+  border: 2px solid transparent;
   border-radius: 4px;
   font-size: 16px;
   font-weight: 700;
   line-height: 1.4;
   text-align: center;
+  text-decoration: none;
   white-space: normal;
 }
 
@@ -185,10 +252,13 @@ main > .section.velocity-hero-section > .hero-wrapper {
   outline-offset: 4px;
 }
 
-/* Tablet */
+/* ==========================================================
+   TABLET
+   ========================================================== */
+
 @media (width >= 600px) {
   .hero.split .hero-content {
-    padding: 40px;
+    padding: 44px 40px;
   }
 
   .hero.split .hero-media {
@@ -196,7 +266,10 @@ main > .section.velocity-hero-section > .hero-wrapper {
   }
 }
 
-/* Desktop */
+/* ==========================================================
+   DESKTOP
+   ========================================================== */
+
 @media (width >= 900px) {
   .hero:not(.split) {
     padding: 40px 32px;
@@ -207,24 +280,43 @@ main > .section.velocity-hero-section > .hero-wrapper {
   }
 
   .hero.split .hero-layout {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    min-height: 540px;
+    grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+    min-height: 580px;
   }
 
   .hero.split .hero-content {
-    padding: 56px 48px;
+    padding: 64px clamp(32px, 5.5vw, 104px);
   }
 
   .hero.split .hero-content > p {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .hero.split .hero-content > .hero-eyebrow {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .hero.split .hero-media {
     order: 0;
-    min-height: 540px;
+    min-height: 580px;
+  }
+
+  .hero.split a.button:any-link {
+    min-height: 56px;
+    font-size: 18px;
+  }
+}
+
+/* ==========================================================
+   LARGE DESKTOP
+   ========================================================== */
+
+@media (width >= 1440px) {
+  .hero.split .hero-layout {
+    min-height: 660px;
+  }
+
+  .hero.split .hero-media {
+    min-height: 660px;
   }
 }
