@@ -1,0 +1,247 @@
+main .product-details-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: var(--body-font-family, sans-serif);
+}
+
+@media (max-width: 768px) {
+  main .product-details-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Gallery Section */
+.product-gallery-section .product-main-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  object-fit: cover;
+}
+
+.product-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.product-thumbnails .thumb-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+  opacity: 0.7;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+.product-thumbnails .thumb-img.active,
+.product-thumbnails .thumb-img:hover {
+  border-color: #000;
+  opacity: 1;
+}
+
+/* Info Section */
+.product-sku {
+  font-size: 0.85rem;
+  color: #767676;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.product-info-section .product-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0.25rem 0 0.5rem 0;
+  color: #333;
+}
+
+.product-rating {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.product-pricing {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.product-pricing .current-price {
+  color: #b12704;
+}
+
+.product-pricing .regular-price {
+  text-decoration: line-through;
+  color: #767676;
+  font-size: 1.1rem;
+}
+
+.stock-status {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 0.95ln;
+}
+
+.stock-status.in-stock {
+  color: #00875a;
+}
+
+.stock-status.out-of-stock {
+  color: #de350b;
+}
+
+.product-description {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+/* Options (Color & Size) */
+.option-group {
+  margin-bottom: 1.2rem;
+}
+
+.option-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  padding: 0;
+}
+
+.swatch.selected {
+  border-color: #000;
+  transform: scale(1.1);
+}
+
+.size-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.size-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.size-btn:hover {
+  border-color: #666;
+}
+
+.size-btn.selected {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
+/* Actions Bar & Quantity */
+.product-actions-bar {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.quantity-selector button {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.quantity-selector button:hover {
+  background-color: #f2f2f2;
+}
+
+.quantity-selector input {
+  width: 40px;
+  text-align: center;
+  border: none;
+  font-size: 1rem;
+  background: transparent;
+}
+
+/* Hide spinners on number input */
+.quantity-selector input::-webkit-outer-spin-button,
+.quantity-selector input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  background-color: #0056b3;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 0.75rem 1rem;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #003d82;
+}
+
+.add-to-cart-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Error / Not Found states */
+.product-not-found, .product-error {
+  text-align: center;
+  padding: 4rem 1rem;
+  font-family: var(--body-font-family, sans-serif);
+}
+
+.return-home-btn {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #000;
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+}

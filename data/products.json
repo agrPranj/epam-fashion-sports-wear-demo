@@ -1,0 +1,426 @@
+{
+  "LLWP13.2-30": {
+    "sku": "LLWP13.2-30",
+    "name": "Radiant Tee & Jacket Combo / Luma Yoga Jacket",
+    "category": "Jackets",
+    "price": "$48.00",
+    "regularPrice": "$60.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.5,
+    "reviewCount": 24,
+    "shortDescription": "A breathable, moisture-wicking athletic jacket designed for yoga, running, and everyday casual wear.",
+    "images": [
+      "/images/product-jacket-main.jpg",
+      "/images/product-jacket-thumb1.jpg",
+      "/images/product-jacket-thumb2.jpg"
+    ],
+    "sizes": ["XS", "S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Orange", "hex": "#ff7f00" },
+      { "name": "Blue", "hex": "#007fff" },
+      { "name": "Gray", "hex": "#808080" }
+    ]
+  },
+  "WH06-M-Orange": {
+    "sku": "WH06-M-Orange",
+    "name": "Cronus Fitness Hoodie",
+    "category": "Hoodies",
+    "price": "$59.00",
+    "regularPrice": "$75.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.8,
+    "reviewCount": 42,
+    "shortDescription": "Warm, plush pullover hoodie featuring a comfortable hood and front kangaroo pocket for chilly outdoor workouts.",
+    "images": [
+      "/images/hoodie-main.jpg",
+      "/images/hoodie-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Orange", "hex": "#ff7f00" },
+      { "name": "Black", "hex": "#000000" }
+    ]
+  },
+  "WS12-S-Blue": {
+    "sku": "WS12-S-Blue",
+    "name": "Geo Flow Compression Tank",
+    "category": "Tops",
+    "price": "$24.00",
+    "regularPrice": "$30.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.2,
+    "reviewCount": 15,
+    "shortDescription": "Lightweight sleeveless tank top engineered with four-way stretch fabric for optimal mobility.",
+    "images": [
+      "/images/tank-main.jpg",
+      "/images/tank-thumb1.jpg"
+    ],
+    "sizes": ["XS", "S", "M", "L"],
+    "colors": [
+      { "name": "Blue", "hex": "#007fff" },
+      { "name": "White", "hex": "#ffffff" },
+      { "name": "Pink", "hex": "#ffc0cb" }
+    ]
+  },
+  "WP03-32-Black": {
+    "sku": "WP03-32-Black",
+    "name": "Stellar Dynamic Yoga Pant",
+    "category": "Pants",
+    "price": "$52.00",
+    "regularPrice": "$65.00",
+    "currency": "USD",
+    "inStock": false,
+    "rating": 4.6,
+    "reviewCount": 38,
+    "shortDescription": "High-waisted, buttery-soft yoga pants providing complete coverage and comfortable compression.",
+    "images": [
+      "/images/pants-main.jpg",
+      "/images/pants-thumb1.jpg"
+    ],
+    "sizes": ["28", "30", "32", "34", "36"],
+    "colors": [
+      { "name": "Black", "hex": "#000000" },
+      { "name": "Navy", "hex": "#000080" }
+    ]
+  },
+  "WT01-M-White": {
+    "sku": "WT01-M-White",
+    "name": "Breathe-Easy Running Tee",
+    "category": "Tees",
+    "price": "$29.00",
+    "regularPrice": "$35.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.3,
+    "reviewCount": 19,
+    "shortDescription": "Ultra-lightweight running t-shirt with targeted ventilation panels to keep you cool during intense runs.",
+    "images": [
+      "/images/tee-white-main.jpg",
+      "/images/tee-white-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": [
+      { "name": "White", "hex": "#ffffff" },
+      { "name": "Gray", "hex": "#808080" }
+    ]
+  },
+  "WSH04-L-Red": {
+    "sku": "WSH04-L-Red",
+    "name": "Sprint Flex Training Shorts",
+    "category": "Shorts",
+    "price": "$34.00",
+    "regularPrice": "$42.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.7,
+    "reviewCount": 27,
+    "shortDescription": "Flexible athletic shorts equipped with built-in liners and secure zippered pockets.",
+    "images": [
+      "/images/shorts-red-main.jpg",
+      "/images/shorts-red-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Red", "hex": "#ff0000" },
+      { "name": "Black", "hex": "#000000" }
+    ]
+  },
+  "WJ22-XL-Navy": {
+    "sku": "WJ22-XL-Navy",
+    "name": "Alpine Trail Windbreaker",
+    "category": "Jackets",
+    "price": "$78.00",
+    "regularPrice": "$95.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.9,
+    "reviewCount": 51,
+    "shortDescription": "Weather-resistant windbreaker jacket designed to shield you against sudden gusts and light rain showers.",
+    "images": [
+      "/images/windbreaker-main.jpg",
+      "/images/windbreaker-thumb1.jpg"
+    ],
+    "sizes": ["M", "L", "XL", "XXL"],
+    "colors": [
+      { "name": "Navy", "hex": "#000080" },
+      { "name": "Olive", "hex": "#556b2f" }
+    ]
+  },
+  "WH09-S-Charcoal": {
+    "sku": "WH09-S-Charcoal",
+    "name": "Apex Thermal Zip Hoodie",
+    "category": "Hoodies",
+    "price": "$64.00",
+    "regularPrice": "$80.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.4,
+    "reviewCount": 33,
+    "shortDescription": "Full-zip thermal hoodie lined with soft fleece insulation for superior warmth retention.",
+    "images": [
+      "/images/zip-hoodie-main.jpg",
+      "/images/zip-hoodie-thumb1.jpg"
+    ],
+    "sizes": ["XS", "S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Charcoal", "hex": "#36454f" },
+      { "name": "Burgundy", "hex": "#800020" }
+    ]
+  },
+  "WP11-30-Khaki": {
+    "sku": "WP11-30-Khaki",
+    "name": "Nomad Utility Hiking Pants",
+    "category": "Pants",
+    "price": "$68.00",
+    "regularPrice": "$85.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.7,
+    "reviewCount": 60,
+    "shortDescription": "Durable, water-repellent hiking pants featuring reinforced knees and multi-utility cargo pockets.",
+    "images": [
+      "/images/hiking-pants-main.jpg",
+      "/images/hiking-pants-thumb1.jpg"
+    ],
+    "sizes": ["30", "32", "34", "36", "38"],
+    "colors": [
+      { "name": "Khaki", "hex": "#c3b091" },
+      { "name": "Green", "hex": "#008000" }
+    ]
+  },
+  "WT15-M-Black": {
+    "sku": "WT15-M-Black",
+    "name": "Graphite Training Long-Sleeve",
+    "category": "Tees",
+    "price": "$38.00",
+    "regularPrice": "$45.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.1,
+    "reviewCount": 12,
+    "shortDescription": "Comfortable long-sleeve athletic shirt offering UV protection and antimicrobial odor control.",
+    "images": [
+      "/images/ls-tee-main.jpg",
+      "/images/ls-tee-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Black", "hex": "#000000" },
+      { "name": "Steel Gray", "hex": "#71797e" }
+    ]
+  },
+  "WS20-S-Teal": {
+    "sku": "WS20-S-Teal",
+    "name": "Solstice Racerback Tank",
+    "category": "Tops",
+    "price": "$22.00",
+    "regularPrice": "$28.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.6,
+    "reviewCount": 21,
+    "shortDescription": "Airy racerback tank designed for maximum range of motion during yoga and Pilates classes.",
+    "images": [
+      "/images/racerback-main.jpg",
+      "/images/racerback-thumb1.jpg"
+    ],
+    "sizes": ["XS", "S", "M", "L"],
+    "colors": [
+      { "name": "Teal", "hex": "#008080" },
+      { "name": "Coral", "hex": "#ff6f61" }
+    ]
+  },
+  "WSH10-M-Blue": {
+    "sku": "WSH10-M-Blue",
+    "name": "Velocity Board Shorts",
+    "category": "Shorts",
+    "price": "$45.00",
+    "regularPrice": "$55.00",
+    "currency": "USD",
+    "inStock": false,
+    "rating": 4.5,
+    "reviewCount": 18,
+    "shortDescription": "Quick-dry board shorts featuring a secure tie waist and flexible multi-directional stretch.",
+    "images": [
+      "/images/boardshorts-main.jpg",
+      "/images/boardshorts-thumb1.jpg"
+    ],
+    "sizes": ["30", "32", "34", "36"],
+    "colors": [
+      { "name": "Blue", "hex": "#0000ff" },
+      { "name": "Yellow", "hex": "#ffff00" }
+    ]
+  },
+  "WJ30-L-Black": {
+    "sku": "WJ30-L-Black",
+    "name": "Pinnacle Insulated Puffer Jacket",
+    "category": "Jackets",
+    "price": "$120.00",
+    "regularPrice": "$150.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.9,
+    "reviewCount": 89,
+    "shortDescription": "Featherlight insulated puffer jacket packed with high-loft synthetic down for extreme winter weather.",
+    "images": [
+      "/images/puffer-main.jpg",
+      "/images/puffer-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Black", "hex": "#000000" },
+      { "name": "Silver", "hex": "#c0c0c0" }
+    ]
+  },
+  "WH14-L-Green": {
+    "sku": "WH14-L-Green",
+    "name": "Forest Crest Fleece Pullover",
+    "category": "Hoodies",
+    "price": "$55.00",
+    "regularPrice": "$70.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.3,
+    "reviewCount": 31,
+    "shortDescription": "Cozy crewneck fleece pullover built for relaxed weekends and post-workout recovery warmth.",
+    "images": [
+      "/images/pullover-main.jpg",
+      "/images/pullover-thumb1.jpg"
+    ],
+    "sizes": ["XS", "S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Green", "hex": "#2e8b57" },
+      { "name": "Oatmeal", "hex": "#d8bc9b" }
+    ]
+  },
+  "WP18-34-Grey": {
+    "sku": "WP18-34-Grey",
+    "name": "Titanium Track Pants",
+    "category": "Pants",
+    "price": "$49.00",
+    "regularPrice": "$60.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.5,
+    "reviewCount": 44,
+    "shortDescription": "Slim-fit athletic track pants with tapered legs and convenient ankle zippers for easy removal.",
+    "images": [
+      "/images/trackpants-main.jpg",
+      "/images/trackpants-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Grey", "hex": "#808080" },
+      { "name": "Black", "hex": "#000000" }
+    ]
+  },
+  "WT22-S-Navy": {
+    "sku": "WT22-S-Navy",
+    "name": "Classic Core Cotton Tee",
+    "category": "Tees",
+    "price": "$19.00",
+    "regularPrice": "$24.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.2,
+    "reviewCount": 55,
+    "shortDescription": "Super-soft ring-spun cotton everyday t-shirt tailored for a clean, casual fit.",
+    "images": [
+      "/images/cottontee-main.jpg",
+      "/images/cottontee-thumb1.jpg"
+    ],
+    "sizes": ["XS", "S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Navy", "hex": "#000080" },
+      { "name": "White", "hex": "#ffffff" },
+      { "name": "Red", "hex": "#ff0000" }
+    ]
+  },
+  "WSH19-S-Purple": {
+    "sku": "WSH19-S-Purple",
+    "name": "Zenith Compression Bike Shorts",
+    "category": "Shorts",
+    "price": "$32.00",
+    "regularPrice": "$40.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.7,
+    "reviewCount": 39,
+    "shortDescription": "High-rise bike shorts offering gentle compression and a wide, no-slip waistband.",
+    "images": [
+      "/images/bikeshorts-main.jpg",
+      "/images/bikeshorts-thumb1.jpg"
+    ],
+    "sizes": ["XS", "S", "M", "L"],
+    "colors": [
+      { "name": "Purple", "hex": "#800080" },
+      { "name": "Black", "hex": "#000000" }
+    ]
+  },
+  "WJ40-M-Yellow": {
+    "sku": "WJ40-M-Yellow",
+    "name": "Solaris Lightweight Shell Jacket",
+    "category": "Jackets",
+    "price": "$65.00",
+    "regularPrice": "$85.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.4,
+    "reviewCount": 16,
+    "shortDescription": "Packable high-visibility shell jacket designed for cyclists and early morning runners.",
+    "images": [
+      "/images/shell-main.jpg",
+      "/images/shell-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL"],
+    "colors": [
+      { "name": "Yellow", "hex": "#ffd700" },
+      { "name": "Orange", "hex": "#ffa500" }
+    ]
+  },
+  "WH25-XL-Black": {
+    "sku": "WH25-XL-Black",
+    "name": "Urban Edge Oversized Hoodie",
+    "category": "Hoodies",
+    "price": "$68.00",
+    "regularPrice": "$85.00",
+    "currency": "USD",
+    "inStock": false,
+    "rating": 4.6,
+    "reviewCount": 22,
+    "shortDescription": "Relaxed oversized streetwear hoodie crafted with heavy-weight cotton fleece.",
+    "images": [
+      "/images/oversized-hoodie-main.jpg",
+      "/images/oversized-hoodie-thumb1.jpg"
+    ],
+    "sizes": ["M", "L", "XL"],
+    "colors": [
+      { "name": "Black", "hex": "#000000" },
+      { "name": "Sand", "hex": "#c2b280" }
+    ]
+  },
+  "WT30-L-Blue": {
+    "sku": "WT30-L-Blue",
+    "name": "Horizon Seamless Performance Tee",
+    "category": "Tees",
+    "price": "$35.00",
+    "regularPrice": "$44.00",
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.8,
+    "reviewCount": 48,
+    "shortDescription": "Seamless knit training tee that eliminates chafing and moves smoothly against your skin.",
+    "images": [
+      "/images/seamless-tee-main.jpg",
+      "/images/seamless-tee-thumb1.jpg"
+    ],
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "colors": [
+      { "name": "Blue", "hex": "#4169e1" },
+      { "name": "Black", "hex": "#000000" }
+    ]
+  }
+}
