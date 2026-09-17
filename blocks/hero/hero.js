@@ -1,38 +1,72 @@
 /**
- * Decorates an explicitly authored Hero (Split).
+ * Decorates a structurally authored Hero (Split).
  *
- * Expected rows:
- * Eyebrow | Text
- * Heading | Text
- * Description | Text
- * Image | Inserted image
- * Primary CTA | Authored hyperlink
- * Secondary CTA | Authored hyperlink
+ * Author a single-column table with this header:
+ * Hero (Split)
  *
- * @param {HTMLElement} block The hero block
+ * Follow it with exactly five content rows:
+ * 1. Eyebrow text     — optional
+ * 2. Heading text     — required
+ * 3. Description text — optional
+ * 4. Inserted image   — required
+ * 5. Primary CTA link — optional
+ *
+ * Keep empty optional rows. Do not reorder the rows.
+ * The block header is not included in block.children.
+ *
+ * @param {HTMLElement} block The hero block element
  */
 export default function decorate(block) {
   if (!block.classList.contains('split')) return;
 
-  // Read the authored field labels and their value cells.
-  const fields = new Map();
+  const rows = [...block.children];
 
-  [...block.children].forEach((row) => {
-    const [label, value] = row.children;
-    if (!label || !value) return;
+  // Validate the authoring structure before changing any content.
+  const hasValidStructure = rows.length === 5
+    && rows.every((row) => row.children.length === 1);
 
-    const key = label.textContent.trim().toLowerCase();
-    fields.set(key, value);
-  });
+  if (!hasValidStructure) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      'Hero (Split): expected exactly five content rows, each with one cell.',
+      block,
+    );
+    return;
+  }
 
-  const headingText = fields.get('heading')?.textContent.trim();
-  const imageCell = fields.get('image');
-  const image = imageCell?.querySelector('img');
+  const [
+    eyebrowCell,
+    headingCell,
+    descriptionCell,
+    imageCell,
+    primaryCell,
+  ] = rows.map((row) => row.firstElementChild);
 
-  // Leave the authored content intact if required fields are missing.
+  const eyebrowText = eyebrowCell.textContent.trim();
+  const headingText = headingCell.textContent.trim();
+  const descriptionText = descriptionCell.textContent.trim();
+  const image = imageCell.querySelector('img');
+
   if (!headingText || !image) {
     // eslint-disable-next-line no-console
-    console.warn('Hero (Split) requires a Heading and an inserted Image.');
+    console.warn(
+      'Hero (Split): row 2 requires heading text and row 4 requires an inserted image.',
+      block,
+    );
+    return;
+  }
+
+  // A non-empty CTA cell must contain one link with visible text.
+  const links = primaryCell.querySelectorAll('a[href]');
+  const hasCtaContent = primaryCell.textContent.trim().length > 0
+    || links.length > 0;
+
+  if (hasCtaContent && (links.length !== 1 || !links[0].textContent.trim())) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      'Hero (Split): row 5 must be empty or contain one text hyperlink.',
+      block,
+    );
     return;
   }
 
@@ -45,9 +79,6 @@ export default function decorate(block) {
   const media = document.createElement('div');
   media.className = 'hero-media';
 
-  // The eyebrow is optional.
-  const eyebrowText = fields.get('eyebrow')?.textContent.trim();
-
   if (eyebrowText) {
     const eyebrow = document.createElement('p');
     eyebrow.className = 'hero-eyebrow';
@@ -55,12 +86,10 @@ export default function decorate(block) {
     content.append(eyebrow);
   }
 
-  // This implementation is for the homepage's main hero.
+  // This block is intended to be the page's main hero.
   const heading = document.createElement('h1');
   heading.textContent = headingText;
   content.append(heading);
-
-  const descriptionText = fields.get('description')?.textContent.trim();
 
   if (descriptionText) {
     const description = document.createElement('p');
@@ -69,25 +98,22 @@ export default function decorate(block) {
     content.append(description);
   }
 
-  // Style the authored links as buttons without requiring bold/italic.
-  [
-    ['primary cta', 'primary'],
-    ['secondary cta', 'secondary'],
-  ].forEach(([field, style]) => {
-    const link = fields.get(field)?.querySelector('a[href]');
-    if (!link) return;
+  const authoredLink = links[0];
 
-    const button = link.cloneNode(true);
-    button.className = `button ${style}`;
+  if (authoredLink) {
+    // Preserve the authored URL and other link attributes.
+    const button = authoredLink.cloneNode(true);
+    button.className = 'button primary';
+    button.textContent = authoredLink.textContent.trim();
 
     const wrapper = document.createElement('p');
     wrapper.className = 'button-wrapper';
     wrapper.append(button);
 
     content.append(wrapper);
-  });
+  }
 
-  // Preserve any responsive picture sources and the image's alt text.
+  // Preserve responsive picture sources and the image's alt text.
   const picture = image.closest('picture');
   media.append(picture || image);
 
@@ -97,6 +123,7 @@ export default function decorate(block) {
   const section = block.closest('.section');
   section?.classList.add('velocity-hero-section');
 
+  // Prioritize the image only for a hero in the first section.
   const main = block.closest('main');
   const firstSection = main?.querySelector('.section');
 
