@@ -1,21 +1,26 @@
 export default async function decorate(block) {
-  // 1. Get product ID from URL query parameters (e.g., ?id=LLWP13.2-30)
+  // 1. Get product ID from URL query parameters (e.g., ?id=24-WG09)
   const urlParams = new URLSearchParams(window.location.search);
   const productId = urlParams.get('id') || 'LLWP13.2-30'; // Fallback ID if none provided
 
-  block.textContent = ''; // Clear existing block content
+  block.textContent = ''; // Clear block content
 
   try {
-    // 2. Fetch the multi-product JSON catalog
+    // 2. Fetch the products JSON array
     const response = await fetch('/data/products.json');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const productsCatalog = await response.json();
+    const data = await response.json();
 
-    // 3. Lookup the specific product using the key/SKU from the catalog
-    const product = productsCatalog[productId];
+    // 3. Find the product inside the array matching the ID
+    let product = null;
+    if (Array.isArray(data)) {
+      product = data.find(p => p.id === productId);
+    } else {
+      product = data[productId]; // Fallback in case it's an object map
+    }
 
     if (!product) {
       block.innerHTML = `
@@ -28,60 +33,61 @@ export default async function decorate(block) {
       return;
     }
 
-    // 4. Construct the Product Details DOM Structure dynamically from the JSON data
+    // 4. Construct the Product Details DOM Structure
     const container = document.createElement('div');
     container.className = 'product-details-container';
+
+    // Format image path correctly
+    const imageUrl = product.image.startsWith('/') ? product.image : `/${product.image}`;
 
     container.innerHTML = `
       <div class="product-gallery-section">
         <div class="product-main-image">
-          <img src="${product.images[0]}" alt="${product.name}" />
-        </div>
-        <div class="product-thumbnails">
-          ${product.images.map((img, index) => `
-            <img src="${img}" alt="${product.name} thumbnail ${index + 1}" class="thumb-img ${index === 0 ? 'active' : ''}" />
-          `).join('')}
+          <img src="${imageUrl}" alt="${product.name}" />
         </div>
       </div>
 
       <div class="product-info-section">
-        <span class="product-sku">SKU: ${product.sku}</span>
+        <span class="product-sku">ID: ${product.id}</span>
         <h1 class="product-title">${product.name}</h1>
 
         <div class="product-rating">
           <span class="stars">⭐⭐⭐⭐⭐</span>
-          <span class="review-count">(${product.reviewCount} Reviews)</span>
+          <span class="review-count">(15 Reviews)</span>
         </div>
 
         <div class="product-pricing">
-          <span class="current-price">${product.price}</span>
-          ${product.regularPrice ? `<span class="regular-price">${product.regularPrice}</span>` : ''}
+          <span class="current-price">$${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
         </div>
 
-        <div class="stock-status ${product.inStock ? 'in-stock' : 'out-of-stock'}">
-          ${product.inStock ? '✔ In Stock' : '✖ Out of Stock'}
+        <div class="stock-status in-stock">
+          ✔ In Stock
         </div>
 
-        <p class="product-description">${product.shortDescription}</p>
+        <p class="product-description">${product.description}</p>
 
         <div class="product-options">
-          <div class="option-group">
-            <label>Color: <span class="selected-color-label">${product.colors[0].name}</span></label>
-            <div class="color-swatches">
-              ${product.colors.map((c, i) => `
-                <button class="swatch ${i === 0 ? 'selected' : ''}" style="background-color: ${c.hex}" data-color-name="${c.name}" title="${c.name}"></button>
-              `).join('')}
+          ${product.colors && product.colors.length > 0 ? `
+            <div class="option-group">
+              <label>Color: <span class="selected-color-label">${product.colors[0].name}</span></label>
+              <div class="color-swatches">
+                ${product.colors.map((c, i) => `
+                  <button class="swatch ${i === 0 ? 'selected' : ''}" style="background-color: ${c.hex}" data-color-name="${c.name}" title="${c.name}"></button>
+                `).join('')}
+              </div>
             </div>
-          </div>
+          ` : ''}
 
-          <div class="option-group">
-            <label>Size</label>
-            <div class="size-options">
-              ${product.sizes.map((size, i) => `
-                <button class="size-btn ${i === 0 ? 'selected' : ''}">${size}</button>
-              `).join('')}
+          ${product.sizes && product.sizes.length > 0 ? `
+            <div class="option-group">
+              <label>Size</label>
+              <div class="size-options">
+                ${product.sizes.map((size, i) => `
+                  <button class="size-btn ${i === 0 ? 'selected' : ''}">${size}</button>
+                `).join('')}
+              </div>
             </div>
-          </div>
+          ` : ''}
         </div>
 
         <div class="product-actions-bar">
@@ -90,9 +96,7 @@ export default async function decorate(block) {
             <input type="number" class="qty-input" value="1" min="1" max="10" />
             <button class="qty-btn plus">+</button>
           </div>
-          <button class="add-to-cart-btn" ${!product.inStock ? 'disabled' : ''}>
-            ${product.inStock ? 'Add to Cart' : 'Out of Stock'}
-          </button>
+          <button class="add-to-cart-btn">Add to Cart</button>
         </div>
       </div>
     `;
@@ -100,18 +104,16 @@ export default async function decorate(block) {
     block.append(container);
 
     // 5. Add Interactive Event Listeners
-
-    // Color Swatch Selection
     block.querySelectorAll('.swatch').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         block.querySelectorAll('.swatch').forEach(b => b.classList.remove('selected'));
         e.target.classList.add('selected');
         const colorName = e.target.getAttribute('data-color-name');
-        block.querySelector('.selected-color-label').textContent = colorName;
+        const colorLabel = block.querySelector('.selected-color-label');
+        if (colorLabel) colorLabel.textContent = colorName;
       });
     });
 
-    // Size Selection
     block.querySelectorAll('.size-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         block.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
@@ -119,24 +121,19 @@ export default async function decorate(block) {
       });
     });
 
-    // Quantity Increment / Decrement logic
     const qtyInput = block.querySelector('.qty-input');
     block.querySelector('.qty-btn.minus').addEventListener('click', () => {
       let currentVal = parseInt(qtyInput.value, 10);
-      if (currentVal > 1) {
-        qtyInput.value = currentVal - 1;
-      }
+      if (currentVal > 1) qtyInput.value = currentVal - 1;
     });
 
     block.querySelector('.qty-btn.plus').addEventListener('click', () => {
       let currentVal = parseInt(qtyInput.value, 10);
-      if (currentVal < 10) {
-        qtyInput.value = currentVal + 1;
-      }
+      if (currentVal < 10) qtyInput.value = currentVal + 1;
     });
 
   } catch (error) {
     console.error('Error loading product catalog data:', error);
-    block.innerHTML = `<div class="product-error">Failed to load product details. Please try again later.</div>`;
+    block.innerHTML = `<div class="product-error">Failed to load product details. Please check console for details.</div>`;
   }
 }
