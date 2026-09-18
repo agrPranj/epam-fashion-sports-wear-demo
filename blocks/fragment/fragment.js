@@ -14,6 +14,38 @@ import {
 } from '../../scripts/aem.js';
 
 /**
+ * Returns the language or language/region prefix from the current URL.
+ * @returns {string} The localized URL prefix
+ */
+export function getLocalePath() {
+  const segments = window.location.pathname.split('/').filter(Boolean);
+  const locale = segments[0];
+  const region = segments[1];
+  if (!locale || !/^[a-z]{2}$/i.test(locale)) {
+    // eslint-disable-next-line no-console
+    console.log('[locale] invalid or missing locale, using fallback', {
+      pathname: window.location.pathname,
+      locale,
+      region,
+      localePath: '/en',
+    });
+    return '/en';
+  }
+
+  const localePath = region && /^[a-z]{2}$/i.test(region)
+    ? `/${locale}/${region}`
+    : `/${locale}`;
+  // eslint-disable-next-line no-console
+  console.log('[locale] received locale and region', {
+    pathname: window.location.pathname,
+    locale,
+    region,
+    localePath,
+  });
+  return localePath;
+}
+
+/**
  * Loads a fragment.
  * @param {string} path The path to the fragment
  * @returns {HTMLElement} The root element of the fragment

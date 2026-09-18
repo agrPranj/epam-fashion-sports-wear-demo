@@ -1,5 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { loadFragment } from '../fragment/fragment.js';
+import { getLocalePath, loadFragment } from '../fragment/fragment.js';
 
 /**
  * loads and decorates the footer
@@ -8,7 +8,12 @@ import { loadFragment } from '../fragment/fragment.js';
 export default async function decorate(block) {
   // load footer as fragment
   const footerMeta = getMetadata('footer');
-  const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : '/en/footer';
+  const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : `${getLocalePath()}/footer`;
+  // eslint-disable-next-line no-console
+  console.log('[footer] loading fragment', {
+    path: footerPath,
+    url: new URL(`${footerPath}.plain.html`, window.location).href,
+  });
   const fragment = await loadFragment(footerPath);
 
   // decorate footer DOM
