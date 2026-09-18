@@ -117,7 +117,7 @@ export default async function decorate(block) {
   const navMeta = getMetadata('nav');
   const navPath = navMeta
     ? new URL(navMeta, window.location).pathname
-    : `${getLocalePath()}/fragment/header/nav`;
+    : `${getLocalePath()}/fragments/header/nav`;
   // eslint-disable-next-line no-console
   console.log('[header] loading fragment', {
     path: navPath,

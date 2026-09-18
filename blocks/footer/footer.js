@@ -10,7 +10,7 @@ export default async function decorate(block) {
   const footerMeta = getMetadata('footer');
   const footerPath = footerMeta
     ? new URL(footerMeta, window.location).pathname
-    : `${getLocalePath()}/fragment/footer/footer`;
+    : `${getLocalePath()}/fragments/footer/footer`;
   // eslint-disable-next-line no-console
   console.log('[footer] loading fragment', {
     path: footerPath,
