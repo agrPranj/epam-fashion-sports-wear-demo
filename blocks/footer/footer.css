@@ -18,3 +18,80 @@ footer .footer p {
     padding: 40px 32px 24px;
   }
 }
+
+
+/* Base styles - Mobile first */
+.footer-columns > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.footer-columns > div > div {
+  width: 100%;
+}
+
+.footer-columns h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-columns ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-columns ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-columns ul li a {
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+.footer-columns ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Tablet - 2 columns */
+@media (min-width: 600px) {
+  .footer-columns > div {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 2rem;
+  }
+
+  .footer-columns > div > div {
+    flex: 1 1 calc(50% - 2rem);
+    min-width: 140px;
+  }
+}
+
+/* Small Desktop - 3 columns */
+@media (min-width: 900px) {
+  .footer-columns > div > div {
+    flex: 1 1 calc(33.333% - 2rem);
+  }
+}
+
+/* Large Desktop - 5 columns side by side */
+@media (min-width: 1200px) {
+  .footer-columns > div {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    padding: 2.5rem;
+  }
+
+  .footer-columns > div > div {
+    flex: 1;
+    min-width: 0;
+  }
+}
