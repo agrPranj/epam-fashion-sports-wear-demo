@@ -5,7 +5,7 @@
             "id": "aem-assets",
             "title": "AEM Assets",
             "description": "AEM Assets plugin for Sidekick",
-            "environments": ["edit", "dev"],
+            "environments": ["edit", "dev", "preview"],
             "url": "https://experience.adobe.com/solutions/CQ-assets-selectors/static-assets/resources/franklin/asset-selector.html",
             "isPalette": true,
             "passConfig": true,
