@@ -7,7 +7,7 @@ export default async function decorate(block) {
 
   try {
     // 2. Fetch the products JSON array
-    const response = await fetch('/api/products');
+    const response = await fetch('../../data/products.json');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
