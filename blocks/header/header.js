@@ -115,7 +115,9 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
 export default async function decorate(block) {
   // load nav as fragment
   const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : `${getLocalePath()}/nav`;
+  const navPath = navMeta
+    ? new URL(navMeta, window.location).pathname
+    : `${getLocalePath()}/fragment/header/nav`;
   // eslint-disable-next-line no-console
   console.log('[header] loading fragment', {
     path: navPath,

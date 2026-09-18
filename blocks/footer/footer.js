@@ -8,7 +8,9 @@ import { getLocalePath, loadFragment } from '../fragment/fragment.js';
 export default async function decorate(block) {
   // load footer as fragment
   const footerMeta = getMetadata('footer');
-  const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : `${getLocalePath()}/footer`;
+  const footerPath = footerMeta
+    ? new URL(footerMeta, window.location).pathname
+    : `${getLocalePath()}/fragment/footer/footer`;
   // eslint-disable-next-line no-console
   console.log('[footer] loading fragment', {
     path: footerPath,
