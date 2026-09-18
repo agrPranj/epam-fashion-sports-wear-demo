@@ -46,6 +46,15 @@ export function getLocalePath() {
 }
 
 /**
+ * Returns the language-only prefix from the current URL.
+ * @returns {string} The language URL prefix
+ */
+export function getLanguagePath() {
+  const [locale] = window.location.pathname.split('/').filter(Boolean);
+  return locale && /^[a-z]{2}$/i.test(locale) ? `/${locale}` : '/en';
+}
+
+/**
  * Loads a fragment.
  * @param {string} path The path to the fragment
  * @returns {HTMLElement} The root element of the fragment
