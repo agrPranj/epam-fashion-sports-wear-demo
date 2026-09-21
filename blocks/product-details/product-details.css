@@ -1,34 +1,29 @@
-/* Force block to fill width properly */
-div.product-details.block {
-  width: 100%;
-  max-width: 100%;
-  padding: 0;
-  margin: 0;
-}
-
-/* Main Grid Layout matching the screenshot */
-main .product-details-container {
+/* Direct Grid Layout on the block element */
+.product-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 3.5rem;
   width: 100%;
   max-width: 1200px;
   margin: 2rem auto;
-  padding: 0 1.5rem;
   box-sizing: border-box;
   font-family: var(--body-font-family, sans-serif);
   align-items: start;
 }
 
 @media (max-width: 768px) {
-  main .product-details-container {
+  .product-details {
     grid-template-columns: 1fr;
     gap: 2rem;
     padding: 0 1rem;
   }
 }
 
-/* Gallery Section (Left Box) */
+/* Left Section: Image Gallery */
+.product-gallery-section {
+  width: 100%;
+}
+
 .product-gallery-section .product-main-image {
   width: 100%;
   border: 1px solid #e1e1e1;
@@ -49,10 +44,11 @@ main .product-details-container {
   display: block;
 }
 
-/* Info Section (Right Side) */
+/* Right Section: Product Details Info */
 .product-info-section {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .product-title {
@@ -73,7 +69,7 @@ main .product-details-container {
 }
 
 .product-rating .stars {
-  color: #f39c12; /* Star rating gold */
+  color: #f39c12;
   letter-spacing: 2px;
   font-size: 1rem;
 }
@@ -85,7 +81,7 @@ main .product-details-container {
 }
 
 .product-pricing .current-price {
-  color: #ff5500; /* Signature Luma Orange Price */
+  color: #ff5500;
 }
 
 .product-description {
@@ -205,7 +201,7 @@ main .product-details-container {
   margin: 0;
 }
 
-/* Vibrant Orange Add to Cart Button */
+/* Add to Cart Button */
 .add-to-cart-btn {
   flex: 1;
   height: 48px;
@@ -245,6 +241,7 @@ main .product-details-container {
   text-align: center;
   padding: 4rem 1rem;
   width: 100%;
+  grid-column: 1 / -1;
 }
 
 .return-home-btn {

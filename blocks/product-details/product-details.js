@@ -33,16 +33,12 @@ export default async function decorate(block) {
       return;
     }
 
-    // 4. Construct the Product Details DOM Structure matching the reference screenshot
-    const container = document.createElement('div');
-    container.className = 'product-details-container';
-
-    // Format image path correctly
+    // 4. Construct the Product Details DOM Structure directly inside the block
     const imageUrl = product.image.startsWith('/') ? product.image : `/${product.image}`;
     const productSku = product.sku || product.id;
     const productCategory = product.category || 'General';
 
-    container.innerHTML = `
+    block.innerHTML = `
       <div class="product-gallery-section">
         <div class="product-main-image">
           <img src="${imageUrl}" alt="${product.name}" />
@@ -103,8 +99,6 @@ export default async function decorate(block) {
         </div>
       </div>
     `;
-
-    block.append(container);
 
     // 5. Add Interactive Event Listeners
     block.querySelectorAll('.swatch').forEach((btn) => {
