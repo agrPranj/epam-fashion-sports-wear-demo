@@ -1,13 +1,13 @@
 export default async function decorate(block) {
-  // 1. Get product ID from URL query parameters (e.g., ?id=24-WG09)
+  // 1. Get product ID from URL query parameters (e.g., ?id=LLWP11.1-28 or ?id=24-WG09)
   const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get('id') || 'LLWP13.2-30'; // Fallback ID if none provided
+  const productId = urlParams.get('id') || 'LLWP11.1-28'; // Fallback ID
 
   block.textContent = ''; // Clear block content
 
   try {
     // 2. Fetch the products JSON array
-    const response = await fetch('../../data/products.json');
+    const response = await fetch('/data/products.json');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -17,9 +17,9 @@ export default async function decorate(block) {
     // 3. Find the product inside the array matching the ID
     let product = null;
     if (Array.isArray(data)) {
-      product = data.find(p => p.id === productId);
+      product = data.find(p => p.id === productId || p.sku === productId);
     } else {
-      product = data[productId]; // Fallback in case it's an object map
+      product = data[productId];
     }
 
     if (!product) {
@@ -33,12 +33,14 @@ export default async function decorate(block) {
       return;
     }
 
-    // 4. Construct the Product Details DOM Structure
+    // 4. Construct the Product Details DOM Structure matching the reference screenshot
     const container = document.createElement('div');
     container.className = 'product-details-container';
 
     // Format image path correctly
     const imageUrl = product.image.startsWith('/') ? product.image : `/${product.image}`;
+    const productSku = product.sku || product.id;
+    const productCategory = product.category || 'General';
 
     container.innerHTML = `
       <div class="product-gallery-section">
@@ -48,55 +50,56 @@ export default async function decorate(block) {
       </div>
 
       <div class="product-info-section">
-        <span class="product-sku">ID: ${product.id}</span>
         <h1 class="product-title">${product.name}</h1>
 
         <div class="product-rating">
-          <span class="stars">⭐⭐⭐⭐⭐</span>
-          <span class="review-count">(15 Reviews)</span>
+          <span class="stars">★★★★★</span>
+          <span class="review-count">23 Reviews</span>
         </div>
 
         <div class="product-pricing">
           <span class="current-price">$${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
         </div>
 
-        <div class="stock-status in-stock">
-          ✔ In Stock
-        </div>
-
         <p class="product-description">${product.description}</p>
 
-        <div class="product-options">
-          ${product.colors && product.colors.length > 0 ? `
-            <div class="option-group">
-              <label>Color: <span class="selected-color-label">${product.colors[0].name}</span></label>
-              <div class="color-swatches">
-                ${product.colors.map((c, i) => `
-                  <button class="swatch ${i === 0 ? 'selected' : ''}" style="background-color: ${c.hex}" data-color-name="${c.name}" title="${c.name}"></button>
-                `).join('')}
-              </div>
+        ${product.sizes && product.sizes.length > 0 ? `
+          <div class="option-group">
+            <label class="option-label">Size</label>
+            <div class="size-options">
+              ${product.sizes.map((size, i) => `
+                <button class="size-btn ${i === 0 ? 'selected' : ''}">${size}</button>
+              `).join('')}
             </div>
-          ` : ''}
+          </div>
+        ` : ''}
 
-          ${product.sizes && product.sizes.length > 0 ? `
-            <div class="option-group">
-              <label>Size</label>
-              <div class="size-options">
-                ${product.sizes.map((size, i) => `
-                  <button class="size-btn ${i === 0 ? 'selected' : ''}">${size}</button>
-                `).join('')}
-              </div>
+        ${product.colors && product.colors.length > 0 ? `
+          <div class="option-group">
+            <label class="option-label">Color</label>
+            <div class="color-swatches">
+              ${product.colors.map((c, i) => `
+                <button class="swatch ${i === 0 ? 'selected' : ''}" style="background-color: ${c.hex}" data-color-name="${c.name}" title="${c.name}"></button>
+              `).join('')}
             </div>
-          ` : ''}
+          </div>
+        ` : ''}
+
+        <div class="option-group">
+          <label class="option-label">Quantity</label>
+          <div class="product-actions-bar">
+            <div class="quantity-selector">
+              <button class="qty-btn minus">-</button>
+              <input type="number" class="qty-input" value="1" min="1" max="10" />
+              <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
 
-        <div class="product-actions-bar">
-          <div class="quantity-selector">
-            <button class="qty-btn minus">-</button>
-            <input type="number" class="qty-input" value="1" min="1" max="10" />
-            <button class="qty-btn plus">+</button>
-          </div>
-          <button class="add-to-cart-btn">Add to Cart</button>
+        <div class="product-metadata">
+          <div class="meta-item"><strong>SKU:</strong> ${productSku}</div>
+          <div class="meta-item"><strong>Category:</strong> ${productCategory.charAt(0).toUpperCase() + productCategory.slice(1)}</div>
         </div>
       </div>
     `;
@@ -108,9 +111,6 @@ export default async function decorate(block) {
       btn.addEventListener('click', (e) => {
         block.querySelectorAll('.swatch').forEach(b => b.classList.remove('selected'));
         e.target.classList.add('selected');
-        const colorName = e.target.getAttribute('data-color-name');
-        const colorLabel = block.querySelector('.selected-color-label');
-        if (colorLabel) colorLabel.textContent = colorName;
       });
     });
 

@@ -1,4 +1,4 @@
-/* Force the block container to take full available width inside the main section */
+/* Force block to fill width properly */
 div.product-details.block {
   width: 100%;
   max-width: 100%;
@@ -6,17 +6,18 @@ div.product-details.block {
   margin: 0;
 }
 
-/* Main Grid Layout */
+/* Main Grid Layout matching the screenshot */
 main .product-details-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  gap: 3.5rem;
   width: 100%;
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1.5rem;
   box-sizing: border-box;
   font-family: var(--body-font-family, sans-serif);
+  align-items: start;
 }
 
 @media (max-width: 768px) {
@@ -27,124 +28,89 @@ main .product-details-container {
   }
 }
 
-/* Gallery Section */
-.product-gallery-section {
-  width: 100%;
-}
-
+/* Gallery Section (Left Box) */
 .product-gallery-section .product-main-image {
   width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #f9f9f9;
-  border: 1px solid #eaeaea;
+  border: 1px solid #e1e1e1;
+  border-radius: 4px;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
 .product-gallery-section .product-main-image img {
   width: 100%;
   height: auto;
+  max-height: 550px;
+  object-fit: contain;
   display: block;
-  object-fit: cover;
-  max-height: 500px;
 }
 
-/* Info Section */
+/* Info Section (Right Side) */
 .product-info-section {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
 }
 
-.product-sku {
-  font-size: 0.85rem;
-  color: #767676;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
-}
-
-.product-info-section .product-title {
+.product-title {
   font-size: 2.25rem;
-  font-weight: 700;
-  margin: 0 0 0.75rem 0;
-  color: #111;
+  font-weight: 400;
+  color: #222;
+  margin: 0 0 0.5rem 0;
   line-height: 1.2;
 }
 
 .product-rating {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #666;
   margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.product-rating .stars {
+  color: #f39c12; /* Star rating gold */
+  letter-spacing: 2px;
+  font-size: 1rem;
 }
 
 .product-pricing {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  font-size: 1.75rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+  font-size: 1.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
 }
 
 .product-pricing .current-price {
-  color: #b12704;
-}
-
-.stock-status {
-  font-weight: 600;
-  margin-bottom: 1.25rem;
-  font-size: 0.95rem;
-}
-
-.stock-status.in-stock {
-  color: #00875a;
-}
-
-.stock-status.out-of-stock {
-  color: #de350b;
+  color: #ff5500; /* Signature Luma Orange Price */
 }
 
 .product-description {
   color: #555;
   line-height: 1.6;
-  margin-bottom: 1.75rem;
-  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
 }
 
-/* Options (Color & Size) */
+/* Option Groups (Size, Color, Quantity) */
 .option-group {
   margin-bottom: 1.25rem;
 }
 
-.option-group label {
+.option-label {
   display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
   color: #333;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
 }
 
-.color-swatches {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.swatch {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s;
-  padding: 0;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-}
-
-.swatch.selected {
-  border-color: #000;
-  transform: scale(1.1);
-}
-
+/* Size Buttons */
 .size-options {
   display: flex;
   gap: 0.5rem;
@@ -152,58 +118,85 @@ main .product-details-container {
 }
 
 .size-btn {
-  padding: 0.5rem 1.25rem;
+  padding: 0.5rem 1.1rem;
   border: 1px solid #ccc;
   background: #fff;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 3px;
+  font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s;
+  color: #333;
 }
 
 .size-btn:hover {
-  border-color: #666;
+  border-color: #333;
 }
 
 .size-btn.selected {
-  border-color: #000;
-  background: #000;
-  color: #fff;
+  border-color: #ff5500;
+  background: #fff;
+  color: #ff5500;
+  font-weight: 600;
+}
+
+/* Color Swatches */
+.color-swatches {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  padding: 0;
+}
+
+.swatch.selected {
+  border-color: #333;
+  transform: scale(1.1);
 }
 
 /* Actions Bar & Quantity */
 .product-actions-bar {
   display: flex;
   gap: 1rem;
-  margin-top: 2rem;
+  align-items: center;
 }
 
 .quantity-selector {
   display: flex;
   align-items: center;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 3px;
   background: #fff;
+  height: 48px;
 }
 
 .quantity-selector button {
   background: none;
   border: none;
-  padding: 0.75rem 1rem;
+  padding: 0 0.85rem;
   cursor: pointer;
   font-size: 1.1rem;
+  color: #333;
 }
 
 .quantity-selector button:hover {
-  background-color: #f2f2f2;
+  background-color: #f5f5f5;
 }
 
 .quantity-selector input {
-  width: 45px;
+  width: 40px;
   text-align: center;
   border: none;
   font-size: 1rem;
   background: transparent;
+  font-weight: 600;
 }
 
 .quantity-selector input::-webkit-outer-spin-button,
@@ -212,21 +205,39 @@ main .product-details-container {
   margin: 0;
 }
 
+/* Vibrant Orange Add to Cart Button */
 .add-to-cart-btn {
   flex: 1;
-  background-color: #0056b3;
+  height: 48px;
+  background-color: #ff5500;
   color: #fff;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 3px;
+  font-size: 0.95rem;
   font-weight: bold;
+  letter-spacing: 0.5px;
   cursor: pointer;
   transition: background-color 0.2s;
-  padding: 0.75rem 1.5rem;
 }
 
 .add-to-cart-btn:hover {
-  background-color: #003d82;
+  background-color: #e04b00;
+}
+
+/* SKU and Category Footer Metadata */
+.product-metadata {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.product-metadata .meta-item strong {
+  color: #333;
 }
 
 /* Error / Not Found states */
