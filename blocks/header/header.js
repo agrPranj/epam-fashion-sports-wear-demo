@@ -1,5 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { loadFragment } from '../fragment/fragment.js';
+import { getLanguagePath, getLocalePath, loadFragment } from '../fragment/fragment.js';
 
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
@@ -115,8 +115,30 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
 export default async function decorate(block) {
   // load nav as fragment
   const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
-  const fragment = await loadFragment(navPath);
+  const localePath = getLocalePath();
+  const navPath = navMeta
+    ? new URL(navMeta, window.location).pathname
+    : `${localePath}/fragments/header/nav`;
+  // eslint-disable-next-line no-console
+  console.log('[header] loading fragment', {
+    path: navPath,
+    url: new URL(`${navPath}.plain.html`, window.location).href,
+  });
+  let fragment = await loadFragment(navPath);
+  if (!fragment && localePath !== getLanguagePath()) {
+    const languageNavPath = `${getLanguagePath()}/fragments/header/nav`;
+    // eslint-disable-next-line no-console
+    console.warn('[header] region fragment unavailable, trying language fragment', {
+      path: languageNavPath,
+      url: new URL(`${languageNavPath}.plain.html`, window.location).href,
+    });
+    fragment = await loadFragment(languageNavPath);
+  }
+  if (!fragment) {
+    // eslint-disable-next-line no-console
+    console.error('[header] unable to load navigation fragment', { path: navPath });
+    return;
+  }
 
   // decorate nav DOM
   block.textContent = '';
