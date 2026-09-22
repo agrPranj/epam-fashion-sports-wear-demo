@@ -79,7 +79,7 @@ header .sr-only {
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
@@ -363,11 +363,9 @@ header .nav-tools svg {
 }
 
 /* visual order regardless of authoring order: search, cart, sign in */
-header .nav-search { order: 1; }
-header .nav-cart { order: 2; }
-header .nav-signin { order: 3; }
 
 header .nav-search {
+  order: 1;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -454,6 +452,7 @@ header .nav-search-submit:hover {
 }
 
 header .nav-cart {
+  order: 2;
   position: relative;
   display: flex;
   align-items: center;
@@ -493,6 +492,7 @@ header .nav-cart-count {
 /* ---------- sign in ---------- */
 
 header .nav-signin {
+  order: 3;
   flex: none;
   font-size: 13px;
   font-weight: 600;
