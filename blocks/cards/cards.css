@@ -1,10 +1,15 @@
+/* ==========================================================
+   BASE CARDS
+   Preserves existing Cards and Cards (Categories) styling.
+   ========================================================== */
+
 .cards > ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
   gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .cards > ul > li {
@@ -24,4 +29,132 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+/* ==========================================================
+   PRODUCT CARDS
+   Authoring: Cards (Products)
+   ========================================================== */
+
+.cards.products > ul {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.cards.products > ul > li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+/* Product image area */
+.cards.products .cards-card-image {
+  margin: 0;
+  padding: 0;
+  border-radius: 4px 4px 0 0;
+  background-color: #f4f6f8;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.cards.products .cards-card-image p {
+  margin: 0;
+  padding: 0;
+}
+
+.cards.products .cards-card-image picture {
+  display: block;
+}
+
+.cards.products > ul > li img {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  margin: 0;
+  padding: 16px;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Product text */
+.cards.products .cards-card-body {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 20px;
+  overflow-wrap: anywhere;
+}
+
+.cards.products .cards-card-body p {
+  margin: 0 0 12px;
+  color: #475569;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/*
+ * Product name:
+ * Supports an authored H3 or a title in the first paragraph.
+ */
+.cards.products .cards-card-body > :first-child {
+  margin: 0 0 8px;
+  color: #102a43;
+  font-family: var(--heading-font-family);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.cards.products .cards-card-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* Product links: author without bold/italic for a text link. */
+.cards.products .cards-card-body a:any-link {
+  color: #075985;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.cards.products .cards-card-body a:hover {
+  color: #0c4a6e;
+  text-decoration-thickness: 2px;
+}
+
+.cards.products .cards-card-body a:focus-visible {
+  outline: 3px solid #075985;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ==========================================================
+   TABLET: TWO PRODUCTS PER ROW
+   ========================================================== */
+
+@media (width >= 600px) {
+  .cards.products > ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+/* ==========================================================
+   DESKTOP: FOUR PRODUCTS PER ROW
+   ========================================================== */
+
+@media (width >= 900px) {
+  .cards.products > ul {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .cards.products .cards-card-body {
+    padding: 20px 16px;
+  }
 }
