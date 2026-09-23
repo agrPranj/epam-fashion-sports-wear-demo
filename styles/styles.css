@@ -77,29 +77,65 @@ main > .section {
 
 
 /* =========================================================
-   WOMEN INTRO SECTION
+   STANDARD EDS SECTION CONTENT
    ========================================================= */
 
-main > .section:first-child {
-  width: 100%;
+/*
+ * This is important for the normal homepage.
+ *
+ * It keeps normal section content centered instead of
+ * stretching across a 3440px viewport.
+ *
+ * The special Women category section below overrides this
+ * for its three direct wrapper elements.
+ */
+
+main > .section > div {
+  max-width: var(--section-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (width >= 900px) {
+  main > .section > div {
+    padding: 0 32px;
+  }
+}
+
+
+/* =========================================================
+   WOMEN CATEGORY INTRO
+   ========================================================= */
+
+/*
+ * Only the section immediately before the category section
+ * gets these heading styles.
+ */
+
+main > .section:has(+ .section.shop-by-container.product-toolbar-container.product-grid-container) {
   margin: 40px 0;
 }
 
-main > .section:first-child > .default-content-wrapper {
-  width: calc(100% - 64px);
+main > .section:has(+ .section.shop-by-container.product-toolbar-container.product-grid-container) > .default-content-wrapper {
   max-width: var(--section-width);
   margin: 0 auto;
-  padding: 0;
+  padding: 0 24px;
 }
 
-main > .section:first-child h1 {
+@media (width >= 900px) {
+  main > .section:has(+ .section.shop-by-container.product-toolbar-container.product-grid-container) > .default-content-wrapper {
+    padding: 0 32px;
+  }
+}
+
+main > .section:has(+ .section.shop-by-container.product-toolbar-container.product-grid-container) h1 {
   margin: 0 0 12px;
   font-size: 40px;
   line-height: 1.15;
   font-weight: 600;
 }
 
-main > .section:first-child p {
+main > .section:has(+ .section.shop-by-container.product-toolbar-container.product-grid-container) p {
   max-width: 760px;
   margin: 0;
   font-size: 16px;
@@ -110,23 +146,6 @@ main > .section:first-child p {
 /* =========================================================
    WOMEN CATEGORY SECTION
    ========================================================= */
-
-/*
-   Actual structure:
-
-   <div class="section
-        shop-by-container
-        product-toolbar-container
-        product-grid-container">
-
-     <div class="shop-by-wrapper"></div>
-     <div class="product-toolbar-wrapper"></div>
-     <div class="product-grid-wrapper"></div>
-
-   </div>
-
-   The outer section is the two-column layout container.
-*/
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container {
   display: grid !important;
@@ -139,41 +158,48 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
   width: calc(100% - 64px) !important;
   max-width: var(--section-width) !important;
   margin: 40px auto 0 !important;
-  padding: 32px 0 0 !important;
+  padding: 32px !important;
   border-top: 1px solid #e5e5e5;
-  box-sizing: border-box;
 }
 
 
 /* =========================================================
-   CATEGORY SECTION WRAPPERS
+   CATEGORY SECTION DIRECT CHILDREN
    ========================================================= */
+
+/*
+ * These three elements normally receive the generic
+ * main > .section > div styling above.
+ *
+ * Reset it here because they are grid items, not standalone
+ * centered page containers.
+ */
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container > .shop-by-wrapper {
   grid-area: filters;
-  width: 100%;
+  width: 100% !important;
   min-width: 0;
-  max-width: none;
-  margin: 0;
-  padding: 0;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-toolbar-wrapper {
   grid-area: toolbar;
-  width: 100%;
+  width: 100% !important;
   min-width: 0;
-  max-width: none;
-  margin: 0;
-  padding: 0;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-grid-wrapper {
   grid-area: products;
-  width: 100%;
+  width: 100% !important;
   min-width: 0;
-  max-width: none;
-  margin: 0;
-  padding: 0;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 
@@ -182,16 +208,12 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
    ========================================================= */
 
 @media (width <= 900px) {
-  main > .section:first-child > .default-content-wrapper {
-    width: calc(100% - 48px);
-  }
-
   main > .section.shop-by-container.product-toolbar-container.product-grid-container {
     grid-template-columns: 180px minmax(0, 1fr) !important;
     gap: 0 24px;
     width: calc(100% - 48px) !important;
     max-width: none !important;
-    padding-top: 24px !important;
+    padding: 24px !important;
   }
 }
 
@@ -201,30 +223,26 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
    ========================================================= */
 
 @media (width <= 600px) {
-  main > .section:first-child > .default-content-wrapper {
-    width: calc(100% - 32px);
-  }
-
   main > .section.shop-by-container.product-toolbar-container.product-grid-container {
     display: block !important;
     width: calc(100% - 32px) !important;
     max-width: none !important;
     margin: 24px auto 0 !important;
-    padding: 24px 0 0 !important;
+    padding: 20px 16px !important;
   }
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container > .shop-by-wrapper {
-    width: 100%;
-    margin-bottom: 32px;
+    width: 100% !important;
+    margin: 0 0 32px !important;
   }
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-toolbar-wrapper {
-    width: 100%;
-    margin-bottom: 24px;
+    width: 100% !important;
+    margin: 0 0 24px !important;
   }
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-grid-wrapper {
-    width: 100%;
+    width: 100% !important;
   }
 }
 
@@ -234,15 +252,11 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
    ========================================================= */
 
 @media (width <= 400px) {
-  main > .section:first-child > .default-content-wrapper {
-    width: calc(100% - 24px);
+  main > .section:has(+ .section.shop-by-container.product-toolbar-container.product-grid-container) > .default-content-wrapper {
+    padding: 0 16px;
   }
 
-  main > .section:first-child h1 {
+  main > .section:has(+ .section.shop-by-container.product-toolbar-container.product-grid-container) h1 {
     font-size: 32px;
-  }
-
-  main > .section.shop-by-container.product-toolbar-container.product-grid-container {
-    width: calc(100% - 24px) !important;
   }
 }
