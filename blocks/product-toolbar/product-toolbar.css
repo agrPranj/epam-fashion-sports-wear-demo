@@ -1,0 +1,36 @@
+.product-toolbar.block {
+  width: 100%;
+}
+
+.product-toolbar.block .product-toolbar-container {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 0 16px;
+  margin: 0 0 24px;
+  border-bottom: 1px solid #ddd;
+}
+
+.product-toolbar.block .product-count-value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.product-toolbar.block .product-sort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.product-toolbar.block .product-sort label {
+  font-size: 14px;
+}
+
+.product-toolbar.block .product-sort-select {
+  min-width: 180px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 14px;
+}
