@@ -1,26 +1,25 @@
 export default async function decorate(block) {
-  // 1. Get product ID from URL query parameters (e.g., ?id=24-WG09)
+  // 1. Get product ID from URL query parameters (e.g., ?id=LLWP11.1-28)
   const urlParams = new URLSearchParams(window.location.search);
   const productId = urlParams.get('id') || 'LLWP11.1-28'; // Fallback ID
 
   block.textContent = ''; // Clear block content
 
   try {
-    // 2. Fetch the products JSON array
-    const response = await fetch('/data/products.json');
+    // 2. Fetch the AEM EDS sheet JSON using the specified path
+    const response = await fetch('/data/products-data.json?sheet=en');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const jsonResponse = await response.json();
+    const productsArray = jsonResponse.data || [];
 
-    // 3. Find the product inside the array matching the ID
-    let product = null;
-    if (Array.isArray(data)) {
-      product = data.find(p => p.id === productId || p.sku === productId);
-    } else {
-      product = data[productId];
-    }
+    // 3. Find the product inside the 'data' array matching the ID (case-insensitive check on ID/SKU)
+    const product = productsArray.find(p =>
+      (p.ID && p.ID.trim().toLowerCase() === productId.trim().toLowerCase()) ||
+      (p.SKU && p.SKU.trim().toLowerCase() === productId.trim().toLowerCase())
+    );
 
     if (!product) {
       block.innerHTML = `
@@ -33,12 +32,25 @@ export default async function decorate(block) {
       return;
     }
 
-    const imageUrl = product.image.startsWith('/') ? product.image : `/${product.image}`;
-    const productSku = product.sku || product.id;
-    const productCategory = product.category || 'General';
+    // 4. Parse comma-separated strings into usable arrays for Sizes and Colors
+    const sizes = product.Sizes ? product.Sizes.split(',').map(s => s.trim()) : [];
 
-    // Fallbacks if arrays aren't in JSON
-    const productFeatures = product.features || [
+    // Colors format in sheet: "Green (#66bb6a)" -> Parse name and hex
+    const colors = product.Colors ? product.Colors.split(',').map(c => {
+      const match = c.match(/(.*?)\s*\((#[0-9a-fA-F]{3,6})\)/);
+      if (match) {
+        return { name: match[1].trim(), hex: match[2].trim() };
+      }
+      return { name: c.trim(), hex: '#cccccc' }; // Fallback hex if none provided
+    }) : [];
+
+    // Handle image path (fallback if image column is missing in sheet)
+    const imageUrl = product.Image ? (product.Image.startsWith('/') ? product.Image : `/${product.Image}`) : `/images/${product.ID}.jpg`;
+    const productSku = product.ID || productId;
+    const productCategory = product.Category || 'General';
+
+    // Fallback features and reviews for tabs
+    const productFeatures = product.Features ? product.Features.split('|').map(f => f.trim()) : [
       "Breathable, moisture-wicking fabric",
       "Four-way stretch for maximum mobility",
       "Flatlock seams reduce chafing",
@@ -46,12 +58,11 @@ export default async function decorate(block) {
       "Made with sustainable materials"
     ];
 
-    const productReviews = product.reviews || [
+    const productReviews = [
       { author: "Sarah M.", rating: 5, text: "Love this product! The fit is perfect and the quality is outstanding. Highly recommend!" },
       { author: "Mike T.", rating: 4, text: "Great product, very comfortable. Would buy again." }
     ];
 
-    // Helper to render star ratings
     const renderStars = (rating) => {
       let starsHtml = '';
       for (let i = 1; i <= 5; i++) {
@@ -60,17 +71,17 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    // 4. Construct the Main Product Section + Tabs Section in one component
+    // 5. Construct the Main Product Section + Tabs Section
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
           <div class="product-main-image">
-            <img src="${imageUrl}" alt="${product.name}" />
+            <img src="${imageUrl}" alt="${product.Name}" />
           </div>
         </div>
 
         <div class="product-info-section">
-          <h1 class="product-title">${product.name}</h1>
+          <h1 class="product-title">${product.Name}</h1>
 
           <div class="product-rating">
             <span class="stars">★★★★★</span>
@@ -78,27 +89,27 @@ export default async function decorate(block) {
           </div>
 
           <div class="product-pricing">
-            <span class="current-price">$${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</span>
+            <span class="current-price">$${typeof product.Price === 'string' ? parseFloat(product.Price).toFixed(2) : product.Price}</span>
           </div>
 
-          <p class="product-description">${product.description}</p>
+          <p class="product-description">${product.Description || ''}</p>
 
-          ${product.sizes && product.sizes.length > 0 ? `
+          ${sizes.length > 0 ? `
             <div class="option-group">
               <label class="option-label">Size</label>
               <div class="size-options">
-                ${product.sizes.map((size, i) => `
+                ${sizes.map((size, i) => `
                   <button class="size-btn ${i === 0 ? 'selected' : ''}">${size}</button>
                 `).join('')}
               </div>
             </div>
           ` : ''}
 
-          ${product.colors && product.colors.length > 0 ? `
+          ${colors.length > 0 ? `
             <div class="option-group">
               <label class="option-label">Color</label>
               <div class="color-swatches">
-                ${product.colors.map((c, i) => `
+                ${colors.map((c, i) => `
                   <button class="swatch ${i === 0 ? 'selected' : ''}" style="background-color: ${c.hex}" data-color-name="${c.name}" title="${c.name}"></button>
                 `).join('')}
               </div>
@@ -159,7 +170,7 @@ export default async function decorate(block) {
       </div>
     `;
 
-    // 5. Add Interactive Event Listeners
+    // 6. Add Interactive Event Listeners
     block.querySelectorAll('.swatch').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         block.querySelectorAll('.swatch').forEach(b => b.classList.remove('selected'));
