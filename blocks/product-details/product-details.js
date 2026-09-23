@@ -41,7 +41,9 @@ export default async function decorate(block) {
     const productFeatures = product.features || [
       "Breathable, moisture-wicking fabric",
       "Four-way stretch for maximum mobility",
-      "Flatlock seams reduce chafing"
+      "Flatlock seams reduce chafing",
+      "Antimicrobial treatment prevents odor",
+      "Made with sustainable materials"
     ];
 
     const productReviews = product.reviews || [
@@ -58,7 +60,7 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    // 4. Construct the Main Product Section + Dynamic Tabs Section
+    // 4. Construct the Main Product Section + Tabs Section in one component
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
@@ -122,7 +124,7 @@ export default async function decorate(block) {
         </div>
       </div>
 
-      <!-- Product Tabs Section (Details & Reviews matching screenshot) -->
+      <!-- Product Tabs Section (Details & Reviews) -->
       <div class="product-tabs-section">
         <div class="product-tabs-header">
           <button class="tab-btn active" data-tab="details">Details</button>

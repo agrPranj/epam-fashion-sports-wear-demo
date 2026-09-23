@@ -292,7 +292,7 @@
   background-color: #ff5500;
 }
 
-/* Explicitly ensuring the background color is white */
+/* Crisp white background container */
 .product-tabs-content {
   background-color: #ffffff !important;
   background: #ffffff;
@@ -343,7 +343,7 @@
   font-size: 1.1rem;
 }
 
-/* Customer Reviews Section (Matching Screenshot) */
+/* Customer Reviews Section */
 .reviews-list {
   display: flex;
   flex-direction: column;
