@@ -31,6 +31,8 @@ body {
 
 img {
   max-width: 100%;
+header {
+  min-height: unset;
 }
 
 a {
