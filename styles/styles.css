@@ -31,7 +31,9 @@ body {
 
 img {
   max-width: 100%;
+  height: auto;
 }
+
 header {
   min-height: unset;
 }
@@ -75,32 +77,27 @@ main > .section {
 
 
 /* =========================================================
-   GENERIC EDS SECTION
-   ========================================================= */
-
-main > .section > div {
-  max-width: var(--section-width);
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-
-/* =========================================================
-   WOMEN INTRO
+   WOMEN INTRO SECTION
    ========================================================= */
 
 main > .section:first-child {
+  width: 100%;
   margin: 40px 0;
 }
 
 main > .section:first-child > .default-content-wrapper {
-  max-width: var(--section-width);
+  width: min(
+    var(--section-width),
+    calc(100% - 64px)
+  );
+
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0;
 }
 
 main > .section:first-child h1 {
   margin: 0 0 12px;
+
   font-size: 40px;
   line-height: 1.15;
   font-weight: 600;
@@ -108,7 +105,9 @@ main > .section:first-child h1 {
 
 main > .section:first-child p {
   max-width: 760px;
+
   margin: 0;
+
   font-size: 16px;
   line-height: 1.6;
 }
@@ -119,115 +118,133 @@ main > .section:first-child p {
    ========================================================= */
 
 /*
-   IMPORTANT:
-
-   Your actual HTML is:
+   Actual HTML:
 
    <div class="
-      section
-      shop-by-container
-      product-toolbar-container
-      product-grid-container
+     section
+     shop-by-container
+     product-toolbar-container
+     product-grid-container
    ">
 
-      <div class="shop-by-wrapper"></div>
-      <div class="product-toolbar-wrapper"></div>
-      <div class="product-grid-wrapper"></div>
+     <div class="shop-by-wrapper">...</div>
+
+     <div class="product-toolbar-wrapper">...</div>
+
+     <div class="product-grid-wrapper">...</div>
 
    </div>
 
-   The section itself is the container.
+   This OUTER section is itself the layout container.
 
-   We keep it centered and limited to 1200px.
+   IMPORTANT:
+   We do NOT style generic .shop-by-container,
+   .product-toolbar-container or .product-grid-container
+   here because those classes are reused by the inner blocks.
 */
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container {
   display: grid !important;
 
-  grid-template-columns: 220px minmax(0, 1fr) !important;
+  grid-template-columns:
+    220px
+    minmax(0, 1fr) !important;
+
+  grid-template-rows:
+    auto
+    auto;
 
   grid-template-areas:
     "filters toolbar"
-    "filters products" !important;
+    "filters products";
 
-  column-gap: 40px !important;
+  column-gap: 40px;
+  row-gap: 0;
 
-  width: calc(100% - 64px) !important;
-  max-width: 1200px !important;
+  width: min(
+    var(--section-width),
+    calc(100% - 64px)
+  ) !important;
+
+  max-width: var(--section-width) !important;
 
   margin: 40px auto 0 !important;
-  padding: 32px !important;
-
-  box-sizing: border-box !important;
+  padding: 32px 0 0 !important;
 
   border-top: 1px solid #e5e5e5;
-}
-
-
-/* =========================================================
-   IMPORTANT RESET FOR THE THREE DIRECT CHILDREN
-   ========================================================= */
-
-/*
-   This overrides the generic EDS rule:
-
-   main > .section > div
-
-   so the three wrappers don't become separate
-   1200px-wide blocks.
-*/
-
-main > .section.shop-by-container.product-toolbar-container.product-grid-container
-> .shop-by-wrapper,
-
-main > .section.shop-by-container.product-toolbar-container.product-grid-container
-> .product-toolbar-wrapper,
-
-main > .section.shop-by-container.product-toolbar-container.product-grid-container
-> .product-grid-wrapper {
-  width: auto !important;
-  max-width: none !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
 
   box-sizing: border-box;
 }
 
 
 /* =========================================================
-   GRID AREAS
+   OUTER SECTION - DIRECT CHILD WRAPPERS
    ========================================================= */
+
+/*
+   These three elements are the ONLY grid items in Section 2.
+*/
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container
 > .shop-by-wrapper {
-  grid-area: filters !important;
+  grid-area: filters;
+
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  max-width: none;
 }
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container
 > .product-toolbar-wrapper {
-  grid-area: toolbar !important;
+  grid-area: toolbar;
+
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  max-width: none;
 }
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container
 > .product-grid-wrapper {
-  grid-area: products !important;
+  grid-area: products;
+
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  max-width: none;
 }
 
 
 /* =========================================================
-   SHOP BY
+   SHOP BY BLOCK
    ========================================================= */
 
 .shop-by.block {
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .shop-by.block > .shop-by-container {
   width: 100%;
+  max-width: none;
+
   margin: 0;
   padding: 0;
 }
+
+
+/* Shop By title */
 
 .shop-by-title {
   margin: 0 0 24px;
@@ -237,14 +254,25 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
   font-weight: 600;
 }
 
+
+/* Filter groups */
+
 .shop-by-groups {
   display: flex;
   flex-direction: column;
+
   gap: 28px;
+
+  width: 100%;
+
+  margin: 0;
+  padding: 0;
 }
 
 .filter-group {
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .filter-group h3 {
@@ -257,18 +285,24 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 
 .filter-group ul {
   list-style: none;
+
   margin: 0;
   padding: 0;
 }
 
 .filter-group li {
   margin: 0 0 10px;
+  padding: 0;
 }
 
 .filter-group label {
   display: flex;
   align-items: center;
+
   gap: 8px;
+
+  margin: 0;
+  padding: 0;
 
   font-size: 14px;
   line-height: 1.4;
@@ -279,7 +313,10 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 .filter-group input[type="checkbox"] {
   width: 15px;
   height: 15px;
+
   margin: 0;
+
+  flex: 0 0 auto;
 }
 
 
@@ -289,45 +326,75 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 
 .product-toolbar.block {
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .product-toolbar.block > .product-toolbar-container {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 
   width: 100%;
+  max-width: none;
 
   margin: 0 0 24px;
   padding: 0 0 20px;
 
   border-bottom: 1px solid var(--border-color);
+
+  box-sizing: border-box;
 }
 
+
+/* Item count */
+
 .product-count {
+  margin: 0;
+
   font-size: 14px;
+  line-height: 1.4;
   font-weight: 600;
 }
+
+.product-count-value {
+  display: inline-block;
+}
+
+
+/* Sort controls */
 
 .product-sort {
   display: flex;
   align-items: center;
+
   gap: 8px;
+
+  margin: 0;
+  padding: 0;
 }
 
 .product-sort label {
+  margin: 0;
+
   font-size: 14px;
+  line-height: 1.4;
 }
 
 .product-sort-select {
   min-width: 180px;
 
+  margin: 0;
   padding: 8px 10px;
 
   border: 1px solid #ccc;
+  border-radius: 0;
+
   background: #fff;
 
   font-size: 14px;
+  line-height: 1.3;
 }
 
 
@@ -335,13 +402,10 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
    PRODUCT GRID
    ========================================================= */
 
-/*
-   IMPORTANT:
-   This targets ONLY the inner product-grid block.
-*/
-
 .product-grid.block {
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .product-grid.block > .product-grid-container {
@@ -353,9 +417,12 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
   gap: 32px 20px;
 
   width: 100%;
+  max-width: none;
 
   margin: 0;
   padding: 0;
+
+  box-sizing: border-box;
 }
 
 
@@ -366,17 +433,32 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 .product-card {
   width: 100%;
   min-width: 0;
+
+  margin: 0;
+  padding: 0;
 }
+
+
+/* =========================================================
+   PRODUCT IMAGE
+   ========================================================= */
 
 .product-image-link {
   display: block;
 
   width: 100%;
+
   aspect-ratio: 3 / 4;
 
   overflow: hidden;
 
   background: #f5f5f5;
+
+  text-decoration: none;
+}
+
+.product-image-link:hover {
+  text-decoration: none;
 }
 
 .product-image-link img {
@@ -385,11 +467,21 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
   width: 100%;
   height: 100%;
 
+  max-width: none;
+
   object-fit: cover;
 }
 
+
+/* =========================================================
+   PRODUCT INFORMATION
+   ========================================================= */
+
 .product-card-content {
-  padding-top: 12px;
+  width: 100%;
+
+  margin: 0;
+  padding: 12px 0 0;
 }
 
 .product-name {
@@ -405,10 +497,15 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
   text-decoration: none;
 }
 
+.product-name a:hover {
+  text-decoration: underline;
+}
+
 .product-price {
   margin: 0;
 
   font-size: 14px;
+  line-height: 1.4;
 }
 
 
@@ -418,14 +515,21 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 
 @media (max-width: 900px) {
 
+  main > .section:first-child > .default-content-wrapper {
+    width: calc(100% - 48px);
+  }
+
   main > .section.shop-by-container.product-toolbar-container.product-grid-container {
-    grid-template-columns: 180px minmax(0, 1fr) !important;
+    grid-template-columns:
+      180px
+      minmax(0, 1fr) !important;
 
-    column-gap: 24px !important;
+    column-gap: 24px;
 
-    width: calc(100% - 32px) !important;
+    width: calc(100% - 48px) !important;
+    max-width: none !important;
 
-    padding: 24px !important;
+    padding-top: 24px !important;
   }
 
   .product-grid.block > .product-grid-container {
@@ -441,34 +545,51 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 
 @media (max-width: 600px) {
 
+  main > .section:first-child > .default-content-wrapper {
+    width: calc(100% - 32px);
+  }
+
   main > .section.shop-by-container.product-toolbar-container.product-grid-container {
     display: block !important;
 
-    width: calc(100% - 24px) !important;
+    width: calc(100% - 32px) !important;
+
     max-width: none !important;
 
     margin: 24px auto 0 !important;
 
-    padding: 16px !important;
+    padding: 24px 0 0 !important;
   }
+
+
+  /* Shop By */
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container
   > .shop-by-wrapper {
-    margin-bottom: 32px !important;
+    margin-bottom: 32px;
   }
+
+
+  /* Toolbar */
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container
   > .product-toolbar-wrapper {
-    margin-bottom: 24px !important;
+    margin-bottom: 24px;
   }
 
   .product-toolbar.block > .product-toolbar-container {
     flex-wrap: wrap;
+
     gap: 16px;
   }
 
+
+  /* Product grid */
+
   .product-grid.block > .product-grid-container {
     grid-template-columns: 1fr;
+
+    gap: 32px;
   }
 }
 
@@ -480,11 +601,15 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 @media (max-width: 400px) {
 
   main > .section:first-child > .default-content-wrapper {
-    padding: 0 16px;
+    width: calc(100% - 24px);
   }
 
   main > .section:first-child h1 {
     font-size: 32px;
+  }
+
+  main > .section.shop-by-container.product-toolbar-container.product-grid-container {
+    width: calc(100% - 24px) !important;
   }
 
   .product-sort {
