@@ -7,7 +7,7 @@
   --text-color: #222;
   --border-color: #ddd;
   --section-width: 1200px;
-  --font-family: Arial, Helvetica, sans-serif;
+  --font-family: arial, helvetica, sans-serif;
 }
 
 *,
@@ -86,18 +86,14 @@ main > .section:first-child {
 }
 
 main > .section:first-child > .default-content-wrapper {
-  width: min(
-    var(--section-width),
-    calc(100% - 64px)
-  );
-
+  width: calc(100% - 64px);
+  max-width: var(--section-width);
   margin: 0 auto;
   padding: 0;
 }
 
 main > .section:first-child h1 {
   margin: 0 0 12px;
-
   font-size: 40px;
   line-height: 1.15;
   font-weight: 600;
@@ -105,9 +101,7 @@ main > .section:first-child h1 {
 
 main > .section:first-child p {
   max-width: 760px;
-
   margin: 0;
-
   font-size: 16px;
   line-height: 1.6;
 }
@@ -118,394 +112,68 @@ main > .section:first-child p {
    ========================================================= */
 
 /*
-   Actual HTML:
+   Actual structure:
 
-   <div class="
-     section
-     shop-by-container
-     product-toolbar-container
-     product-grid-container
-   ">
+   <div class="section
+        shop-by-container
+        product-toolbar-container
+        product-grid-container">
 
-     <div class="shop-by-wrapper">...</div>
-
-     <div class="product-toolbar-wrapper">...</div>
-
-     <div class="product-grid-wrapper">...</div>
+     <div class="shop-by-wrapper"></div>
+     <div class="product-toolbar-wrapper"></div>
+     <div class="product-grid-wrapper"></div>
 
    </div>
 
-   This OUTER section is itself the layout container.
-
-   IMPORTANT:
-   We do NOT style generic .shop-by-container,
-   .product-toolbar-container or .product-grid-container
-   here because those classes are reused by the inner blocks.
+   The outer section is the two-column layout container.
 */
 
 main > .section.shop-by-container.product-toolbar-container.product-grid-container {
   display: grid !important;
-
-  grid-template-columns:
-    220px
-    minmax(0, 1fr) !important;
-
-  grid-template-rows:
-    auto
-    auto;
-
+  grid-template-columns: 220px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto;
   grid-template-areas:
     "filters toolbar"
     "filters products";
-
-  column-gap: 40px;
-  row-gap: 0;
-
-  width: min(
-    var(--section-width),
-    calc(100% - 64px)
-  ) !important;
-
+  gap: 0 40px;
+  width: calc(100% - 64px) !important;
   max-width: var(--section-width) !important;
-
   margin: 40px auto 0 !important;
   padding: 32px 0 0 !important;
-
   border-top: 1px solid #e5e5e5;
-
   box-sizing: border-box;
 }
 
 
 /* =========================================================
-   OUTER SECTION - DIRECT CHILD WRAPPERS
+   CATEGORY SECTION WRAPPERS
    ========================================================= */
 
-/*
-   These three elements are the ONLY grid items in Section 2.
-*/
-
-main > .section.shop-by-container.product-toolbar-container.product-grid-container
-> .shop-by-wrapper {
+main > .section.shop-by-container.product-toolbar-container.product-grid-container > .shop-by-wrapper {
   grid-area: filters;
-
   width: 100%;
   min-width: 0;
-
+  max-width: none;
   margin: 0;
   padding: 0;
-
-  max-width: none;
 }
 
-main > .section.shop-by-container.product-toolbar-container.product-grid-container
-> .product-toolbar-wrapper {
+main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-toolbar-wrapper {
   grid-area: toolbar;
-
   width: 100%;
   min-width: 0;
-
+  max-width: none;
   margin: 0;
   padding: 0;
-
-  max-width: none;
 }
 
-main > .section.shop-by-container.product-toolbar-container.product-grid-container
-> .product-grid-wrapper {
+main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-grid-wrapper {
   grid-area: products;
-
   width: 100%;
   min-width: 0;
-
-  margin: 0;
-  padding: 0;
-
   max-width: none;
-}
-
-
-/* =========================================================
-   SHOP BY BLOCK
-   ========================================================= */
-
-.shop-by.block {
-  width: 100%;
   margin: 0;
   padding: 0;
-}
-
-.shop-by.block > .shop-by-container {
-  width: 100%;
-  max-width: none;
-
-  margin: 0;
-  padding: 0;
-}
-
-
-/* Shop By title */
-
-.shop-by-title {
-  margin: 0 0 24px;
-
-  font-size: 24px;
-  line-height: 1.2;
-  font-weight: 600;
-}
-
-
-/* Filter groups */
-
-.shop-by-groups {
-  display: flex;
-  flex-direction: column;
-
-  gap: 28px;
-
-  width: 100%;
-
-  margin: 0;
-  padding: 0;
-}
-
-.filter-group {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.filter-group h3 {
-  margin: 0 0 12px;
-
-  font-size: 16px;
-  line-height: 1.3;
-  font-weight: 600;
-}
-
-.filter-group ul {
-  list-style: none;
-
-  margin: 0;
-  padding: 0;
-}
-
-.filter-group li {
-  margin: 0 0 10px;
-  padding: 0;
-}
-
-.filter-group label {
-  display: flex;
-  align-items: center;
-
-  gap: 8px;
-
-  margin: 0;
-  padding: 0;
-
-  font-size: 14px;
-  line-height: 1.4;
-
-  cursor: pointer;
-}
-
-.filter-group input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
-
-  margin: 0;
-
-  flex: 0 0 auto;
-}
-
-
-/* =========================================================
-   PRODUCT TOOLBAR
-   ========================================================= */
-
-.product-toolbar.block {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.product-toolbar.block > .product-toolbar-container {
-  display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  width: 100%;
-  max-width: none;
-
-  margin: 0 0 24px;
-  padding: 0 0 20px;
-
-  border-bottom: 1px solid var(--border-color);
-
-  box-sizing: border-box;
-}
-
-
-/* Item count */
-
-.product-count {
-  margin: 0;
-
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 600;
-}
-
-.product-count-value {
-  display: inline-block;
-}
-
-
-/* Sort controls */
-
-.product-sort {
-  display: flex;
-  align-items: center;
-
-  gap: 8px;
-
-  margin: 0;
-  padding: 0;
-}
-
-.product-sort label {
-  margin: 0;
-
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.product-sort-select {
-  min-width: 180px;
-
-  margin: 0;
-  padding: 8px 10px;
-
-  border: 1px solid #ccc;
-  border-radius: 0;
-
-  background: #fff;
-
-  font-size: 14px;
-  line-height: 1.3;
-}
-
-
-/* =========================================================
-   PRODUCT GRID
-   ========================================================= */
-
-.product-grid.block {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.product-grid.block > .product-grid-container {
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-
-  gap: 32px 20px;
-
-  width: 100%;
-  max-width: none;
-
-  margin: 0;
-  padding: 0;
-
-  box-sizing: border-box;
-}
-
-
-/* =========================================================
-   PRODUCT CARD
-   ========================================================= */
-
-.product-card {
-  width: 100%;
-  min-width: 0;
-
-  margin: 0;
-  padding: 0;
-}
-
-
-/* =========================================================
-   PRODUCT IMAGE
-   ========================================================= */
-
-.product-image-link {
-  display: block;
-
-  width: 100%;
-
-  aspect-ratio: 3 / 4;
-
-  overflow: hidden;
-
-  background: #f5f5f5;
-
-  text-decoration: none;
-}
-
-.product-image-link:hover {
-  text-decoration: none;
-}
-
-.product-image-link img {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  max-width: none;
-
-  object-fit: cover;
-}
-
-
-/* =========================================================
-   PRODUCT INFORMATION
-   ========================================================= */
-
-.product-card-content {
-  width: 100%;
-
-  margin: 0;
-  padding: 12px 0 0;
-}
-
-.product-name {
-  margin: 0 0 6px;
-
-  font-size: 15px;
-  line-height: 1.35;
-  font-weight: 500;
-}
-
-.product-name a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.product-name a:hover {
-  text-decoration: underline;
-}
-
-.product-price {
-  margin: 0;
-
-  font-size: 14px;
-  line-height: 1.4;
 }
 
 
@@ -513,28 +181,17 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
    TABLET
    ========================================================= */
 
-@media (max-width: 900px) {
-
+@media (width <= 900px) {
   main > .section:first-child > .default-content-wrapper {
     width: calc(100% - 48px);
   }
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container {
-    grid-template-columns:
-      180px
-      minmax(0, 1fr) !important;
-
-    column-gap: 24px;
-
+    grid-template-columns: 180px minmax(0, 1fr) !important;
+    gap: 0 24px;
     width: calc(100% - 48px) !important;
     max-width: none !important;
-
     padding-top: 24px !important;
-  }
-
-  .product-grid.block > .product-grid-container {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -543,53 +200,31 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
    MOBILE
    ========================================================= */
 
-@media (max-width: 600px) {
-
+@media (width <= 600px) {
   main > .section:first-child > .default-content-wrapper {
     width: calc(100% - 32px);
   }
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container {
     display: block !important;
-
     width: calc(100% - 32px) !important;
-
     max-width: none !important;
-
     margin: 24px auto 0 !important;
-
     padding: 24px 0 0 !important;
   }
 
-
-  /* Shop By */
-
-  main > .section.shop-by-container.product-toolbar-container.product-grid-container
-  > .shop-by-wrapper {
+  main > .section.shop-by-container.product-toolbar-container.product-grid-container > .shop-by-wrapper {
+    width: 100%;
     margin-bottom: 32px;
   }
 
-
-  /* Toolbar */
-
-  main > .section.shop-by-container.product-toolbar-container.product-grid-container
-  > .product-toolbar-wrapper {
+  main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-toolbar-wrapper {
+    width: 100%;
     margin-bottom: 24px;
   }
 
-  .product-toolbar.block > .product-toolbar-container {
-    flex-wrap: wrap;
-
-    gap: 16px;
-  }
-
-
-  /* Product grid */
-
-  .product-grid.block > .product-grid-container {
-    grid-template-columns: 1fr;
-
-    gap: 32px;
+  main > .section.shop-by-container.product-toolbar-container.product-grid-container > .product-grid-wrapper {
+    width: 100%;
   }
 }
 
@@ -598,8 +233,7 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
    SMALL MOBILE
    ========================================================= */
 
-@media (max-width: 400px) {
-
+@media (width <= 400px) {
   main > .section:first-child > .default-content-wrapper {
     width: calc(100% - 24px);
   }
@@ -610,14 +244,5 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
 
   main > .section.shop-by-container.product-toolbar-container.product-grid-container {
     width: calc(100% - 24px) !important;
-  }
-
-  .product-sort {
-    width: 100%;
-  }
-
-  .product-sort-select {
-    flex: 1;
-    min-width: 0;
   }
 }

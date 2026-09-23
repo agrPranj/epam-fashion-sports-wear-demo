@@ -52,13 +52,13 @@
   font-weight: 600;
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   .product-grid.block .product-grid-container {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .product-grid.block .product-grid-container {
     grid-template-columns: 1fr;
   }
