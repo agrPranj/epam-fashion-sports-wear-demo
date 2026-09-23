@@ -79,8 +79,8 @@ export default function decorate(block) {
       const value = event.detail.count;
 
       countValue.textContent = value === 1
-              ? '1 Item'
-              : `${value} Items`;
+        ? '1 Item'
+        : `${value} Items`;
     },
   );
 }
