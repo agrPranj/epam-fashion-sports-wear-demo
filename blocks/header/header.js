@@ -225,7 +225,6 @@ async function buildRegionSelector(nav) {
     </div>`;
 
   const toggle = wrapper.querySelector('.nav-region-toggle');
-  const panel = wrapper.querySelector('.nav-region-panel');
   const regionView = wrapper.querySelector('[data-view="regions"]');
   const countryView = wrapper.querySelector('[data-view="countries"]');
   const regionList = regionView.querySelector('.nav-region-list');
