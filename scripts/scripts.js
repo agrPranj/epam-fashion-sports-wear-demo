@@ -160,7 +160,10 @@ export function decorateMain(main) {
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
-  document.documentElement.lang = 'en';
+  // Avoid a static import because fragment.js imports decorateMain from this module.
+  const { getLanguagePath } = await import('../blocks/fragment/fragment.js');
+  const language = getLanguagePath().slice(1);
+  document.documentElement.lang = language;
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {

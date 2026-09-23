@@ -1,13 +1,25 @@
+.shop-by {
+  float: left;
+  width: 220px;
+  margin-right: 28px;
+}
+
 .shop-by-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
-  padding: 24px 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.filter-group {
+  margin-bottom: 18px;
 }
 
 .filter-group h3 {
-  margin: 0 0 16px;
-  font-size: 18px;
+  margin: 0 0 8px;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .filter-group ul {
@@ -17,25 +29,31 @@
 }
 
 .filter-group li {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
+  color: var(--text-color);
+  font-size: 15px;
 }
 
 .filter-group input {
-  margin-right: 8px;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #666;
 }
 
-@media (max-width: 768px) {
-  .shop-by-container {
-    grid-template-columns: 1fr 1fr;
+@media (width <= 900px) {
+  .shop-by {
+    float: none;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 20px;
   }
 }
 
-@media (max-width: 480px) {
-  .shop-by-container {
-    grid-template-columns: 1fr;
-  }
-}

@@ -1,106 +1,105 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { loadFragment } from '../fragment/fragment.js';
+import { getLanguagePath, getLocalePath, loadFragment } from '../fragment/fragment.js';
 
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
+const ICONS = {
+  search: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+      <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`,
+  cart: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M3 4h2.2l2.3 11.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.5L21 8H6.2"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="10" cy="20" r="1.6" fill="currentColor"/>
+      <circle cx="17.5" cy="20" r="1.6" fill="currentColor"/>
+    </svg>`,
+  globe: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.8"/>
+    </svg>`,
+  chevronLeft: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+  chevronRight: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M9 5 L16 12 L9 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+};
+
+// Sportify Hub logo — four-circle mark + wordmark, inlined so it stays crisp
+// at any size and doesn't depend on an image being authored in da.live
+const LOGO_SVG = `<svg viewBox="0 0 300 72" role="img" aria-label="Sportify Hub" focusable="false">
+    <g transform="translate(36 36)">
+      <circle cx="-9" cy="-9" r="17" fill="#ff5a3c" opacity="0.92"/>
+      <circle cx="9" cy="-9" r="17" fill="#ffb020" opacity="0.92"/>
+      <circle cx="9" cy="9" r="17" fill="#0ea5b8" opacity="0.92"/>
+      <circle cx="-9" cy="9" r="17" fill="#1e3a8a" opacity="0.92"/>
+    </g>
+    <g transform="translate(84 0)" font-family="Georgia, 'Times New Roman', serif">
+      <text x="0" y="45" font-size="30" font-weight="700" fill="#1c1f26">Sportify<tspan fill="#e8281e" font-style="italic"> Hub</tspan></text>
+    </g>
+  </svg>`;
+
 function closeOnEscape(e) {
-  if (e.code === 'Escape') {
-    const nav = document.getElementById('nav');
-    const navSections = nav.querySelector('.nav-sections');
-    if (!navSections) return;
-    const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
-    if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleAllNavSections(navSections);
-      navSectionExpanded.focus();
-    } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleMenu(nav, navSections);
-      nav.querySelector('button').focus();
-    }
+  if (e.code !== 'Escape') return;
+  const nav = document.getElementById('nav');
+  if (!nav) return;
+
+  const search = nav.querySelector('.nav-search');
+  if (search && search.classList.contains('open')) {
+    search.classList.remove('open');
+    nav.querySelector('.nav-search-toggle').setAttribute('aria-expanded', 'false');
+    return;
+  }
+
+  const openDrop = nav.querySelector('.nav-drop[aria-expanded="true"]');
+  if (openDrop && isDesktop.matches) {
+    openDrop.setAttribute('aria-expanded', 'false');
+    openDrop.focus();
+    return;
+  }
+
+  if (!isDesktop.matches && nav.getAttribute('aria-expanded') === 'true') {
+    // eslint-disable-next-line no-use-before-define
+    toggleMenu(nav, false);
+    nav.querySelector('.nav-hamburger button').focus();
   }
 }
 
 function closeOnFocusLost(e) {
   const nav = e.currentTarget;
-  if (!nav.contains(e.relatedTarget)) {
-    const navSections = nav.querySelector('.nav-sections');
-    if (!navSections) return;
-    const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
-    if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleAllNavSections(navSections, false);
-    } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
-      toggleMenu(nav, navSections, false);
-    }
-  }
+  if (nav.contains(e.relatedTarget)) return;
+  const openDrop = nav.querySelector('.nav-drop[aria-expanded="true"]');
+  if (openDrop && isDesktop.matches) openDrop.setAttribute('aria-expanded', 'false');
 }
 
-function openOnKeydown(e) {
-  const focused = document.activeElement;
-  const isNavDrop = focused.className === 'nav-drop';
-  if (isNavDrop && (e.code === 'Enter' || e.code === 'Space')) {
-    const dropExpanded = focused.getAttribute('aria-expanded') === 'true';
-    // eslint-disable-next-line no-use-before-define
-    toggleAllNavSections(focused.closest('.nav-sections'));
-    focused.setAttribute('aria-expanded', dropExpanded ? 'false' : 'true');
-  }
-}
-
-function focusNavSection() {
-  document.activeElement.addEventListener('keydown', openOnKeydown);
-}
-
-/**
- * Toggles all nav sections
- * @param {Element} sections The container element
- * @param {Boolean} expanded Whether the element should be expanded or collapsed
- */
-function toggleAllNavSections(sections, expanded = false) {
-  if (!sections) return;
-  sections.querySelectorAll('.nav-sections .default-content-wrapper > ul > li').forEach((section) => {
-    section.setAttribute('aria-expanded', expanded);
+function toggleAllNavDrops(sections, expanded) {
+  sections.querySelectorAll('.nav-drop').forEach((drop) => {
+    drop.setAttribute('aria-expanded', expanded);
   });
 }
 
 /**
- * Toggles the entire nav
- * @param {Element} nav The container element
- * @param {Element} navSections The nav sections within the container element
- * @param {*} forceExpanded Optional param to force nav expand behavior when not null
+ * Toggles the mobile drawer.
+ * @param {Element} nav the nav element
+ * @param {Boolean} forceExpanded optional force state
  */
-function toggleMenu(nav, navSections, forceExpanded = null) {
-  const expanded = forceExpanded !== null ? !forceExpanded : nav.getAttribute('aria-expanded') === 'true';
+function toggleMenu(nav, forceExpanded = null) {
+  const sections = nav.querySelector('.nav-sections');
+  const expanded = forceExpanded !== null
+    ? !forceExpanded
+    : nav.getAttribute('aria-expanded') === 'true';
   const button = nav.querySelector('.nav-hamburger button');
-  document.body.style.overflowY = (expanded || isDesktop.matches) ? '' : 'hidden';
-  nav.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-  toggleAllNavSections(navSections, expanded || isDesktop.matches ? 'false' : 'true');
-  button.setAttribute('aria-label', expanded ? 'Open navigation' : 'Close navigation');
-  // enable nav dropdown keyboard accessibility
-  if (navSections) {
-    const navDrops = navSections.querySelectorAll('.nav-drop');
-    if (isDesktop.matches) {
-      navDrops.forEach((drop) => {
-        if (!drop.hasAttribute('tabindex')) {
-          drop.setAttribute('tabindex', 0);
-          drop.addEventListener('focus', focusNavSection);
-        }
-      });
-    } else {
-      navDrops.forEach((drop) => {
-        drop.removeAttribute('tabindex');
-        drop.removeEventListener('focus', focusNavSection);
-      });
-    }
-  }
 
-  // enable menu collapse on escape keypress
+  document.body.style.overflowY = expanded || isDesktop.matches ? '' : 'hidden';
+  nav.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+  if (sections) toggleAllNavDrops(sections, false);
+  button.setAttribute('aria-label', expanded ? 'Open navigation' : 'Close navigation');
+
   if (!expanded || isDesktop.matches) {
-    // collapse menu on escape press
     window.addEventListener('keydown', closeOnEscape);
-    // collapse menu on focus lost
     nav.addEventListener('focusout', closeOnFocusLost);
   } else {
     window.removeEventListener('keydown', closeOnEscape);
@@ -108,48 +107,300 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
   }
 }
 
+function decorateSections(sections) {
+  if (!sections) return;
+  sections.querySelectorAll(':scope .default-content-wrapper > ul > li').forEach((li) => {
+    if (li.querySelector('ul')) li.classList.add('nav-drop');
+
+    li.addEventListener('click', () => {
+      if (!isDesktop.matches || !li.classList.contains('nav-drop')) return;
+      const expanded = li.getAttribute('aria-expanded') === 'true';
+      toggleAllNavDrops(sections, false);
+      li.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    });
+  });
+}
+
+function buildSearch(nav) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'nav-search';
+  wrapper.innerHTML = `
+    <label class="sr-only" for="nav-search-input">Search</label>
+    <input id="nav-search-input" type="search" placeholder="Search entire store here..." />
+    <button type="button" class="nav-search-submit" aria-label="Search">
+      ${ICONS.search}
+    </button>`;
+
+  const input = wrapper.querySelector('input');
+  const submit = wrapper.querySelector('.nav-search-submit');
+
+  const runSearch = () => {
+    if (!input.value.trim()) return;
+    window.location.href = `/search?q=${encodeURIComponent(input.value.trim())}`;
+  };
+
+  submit.addEventListener('click', runSearch);
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    runSearch();
+  });
+
+  nav.querySelector('.nav-tools').prepend(wrapper);
+}
+
+function decorateCart(tools) {
+  // the authored cart entry is a link whose href contains "cart", or whose
+  // text is just a number (the item count) if href doesn't say so explicitly
+  let cartLink = tools.querySelector('a[href*="cart" i]');
+  if (!cartLink) {
+    cartLink = [...tools.querySelectorAll('a')]
+      .find((a) => /^\d+$/.test(a.textContent.trim()));
+  }
+  if (!cartLink) return;
+  const count = cartLink.textContent.trim() || '0';
+  cartLink.classList.add('nav-cart');
+  cartLink.setAttribute('aria-label', `Cart, ${count} items`);
+  cartLink.innerHTML = `${ICONS.cart}<span class="nav-cart-count">${count}</span>`;
+}
+
 /**
- * loads and decorates the header, mainly the nav
- * @param {Element} block The header block element
+ * Loads region/country data authored in da.live as a sheet (Region, Country,
+ * Path columns), which Edge Delivery Services automatically exposes as JSON.
+ * Path defaults to /region-nav.json — override via nav metadata
+ * "region-nav" if you author it elsewhere.
+ * @returns {Promise<Array<{region:string, country:string, path:string}>>}
+ */
+async function loadRegionData() {
+  const configPath = getMetadata('region-nav') || '/region-nav.json';
+  try {
+    const res = await fetch(configPath);
+    if (!res.ok) return [];
+    const json = await res.json();
+    const rows = json?.data || [];
+    return rows
+      .map((row) => ({
+        region: (row.Region || row.region || '').trim(),
+        country: (row.Country || row.country || '').trim(),
+        path: (row.Path || row.path || '').trim(),
+      }))
+      .filter((row) => row.region && row.country && row.path);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Builds the globe region/country selector: a toggle button plus a two-step
+ * panel (region list, then a searchable country list within that region).
+ * Renders nothing if no region data is configured, so the header never
+ * breaks or shows an empty globe when this hasn't been authored yet.
+ * @param {Element} nav the nav element
+ */
+async function buildRegionSelector(nav) {
+  const rows = await loadRegionData();
+  if (!rows.length) return;
+
+  const regions = [...new Set(rows.map((r) => r.region))];
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'nav-region';
+  wrapper.innerHTML = `
+    <button type="button" class="nav-region-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose your region and country">
+      ${ICONS.globe}
+    </button>
+    <div class="nav-region-panel">
+      <div class="nav-region-view" data-view="regions">
+        <p class="nav-region-title">Choose your Region</p>
+        <ul class="nav-region-list"></ul>
+      </div>
+      <div class="nav-region-view" data-view="countries" hidden>
+        <div class="nav-region-subheader">
+          <button type="button" class="nav-region-back" aria-label="Back to regions">${ICONS.chevronLeft}</button>
+          <p class="nav-region-title"></p>
+        </div>
+        <label class="sr-only" for="nav-region-search">Search country</label>
+        <input id="nav-region-search" class="nav-region-search" type="search" placeholder="Search"/>
+        <ul class="nav-region-list"></ul>
+      </div>
+    </div>`;
+
+  const toggle = wrapper.querySelector('.nav-region-toggle');
+  const regionView = wrapper.querySelector('[data-view="regions"]');
+  const countryView = wrapper.querySelector('[data-view="countries"]');
+  const regionList = regionView.querySelector('.nav-region-list');
+  const countryList = countryView.querySelector('.nav-region-list');
+  const countryTitle = countryView.querySelector('.nav-region-title');
+  const countrySearch = countryView.querySelector('.nav-region-search');
+  const backBtn = countryView.querySelector('.nav-region-back');
+
+  const closePanel = () => {
+    wrapper.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  };
+
+  const showRegions = () => {
+    countryView.hidden = true;
+    regionView.hidden = false;
+  };
+
+  const showCountries = (region) => {
+    countryTitle.textContent = region;
+    countrySearch.value = '';
+    countryList.innerHTML = '';
+    rows
+      .filter((r) => r.region === region)
+      .forEach((r) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = r.path;
+        a.textContent = r.country;
+        li.append(a);
+        countryList.append(li);
+      });
+    regionView.hidden = true;
+    countryView.hidden = false;
+    countrySearch.focus();
+  };
+
+  regions.forEach((region) => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerHTML = `<span>${region}</span>${ICONS.chevronRight}`;
+    btn.addEventListener('click', () => showCountries(region));
+    li.append(btn);
+    regionList.append(li);
+  });
+
+  backBtn.addEventListener('click', showRegions);
+
+  countrySearch.addEventListener('input', () => {
+    const q = countrySearch.value.trim().toLowerCase();
+    countryList.querySelectorAll('li').forEach((li) => {
+      li.hidden = !li.textContent.toLowerCase().includes(q);
+    });
+  });
+
+  toggle.addEventListener('click', () => {
+    const open = wrapper.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) showRegions();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) closePanel();
+  });
+
+  wrapper.addEventListener('keydown', (e) => {
+    if (e.code === 'Escape') {
+      closePanel();
+      toggle.focus();
+    }
+  });
+
+  nav.querySelector('.nav-tools').append(wrapper);
+}
+
+/**
+ * Loads and decorates the Luma-style header.
+ * @param {Element} block the header block element
  */
 export default async function decorate(block) {
-  // load nav as fragment
+  // load the nav fragment (authored in da.live)
   const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
-  const fragment = await loadFragment(navPath);
+  const localePath = getLocalePath();
+  const navPath = navMeta
+    ? new URL(navMeta, window.location).pathname
+    : `${localePath}/fragments/header/nav`;
+  // eslint-disable-next-line no-console
+  console.log('[header] loading fragment', {
+    path: navPath,
+    url: new URL(`${navPath}.plain.html`, window.location).href,
+  });
+  let fragment = await loadFragment(navPath);
+  if (!fragment && localePath !== getLanguagePath()) {
+    const languageNavPath = `${getLanguagePath()}/fragments/header/nav`;
+    // eslint-disable-next-line no-console
+    console.warn('[header] region fragment unavailable, trying language fragment', {
+      path: languageNavPath,
+      url: new URL(`${languageNavPath}.plain.html`, window.location).href,
+    });
+    fragment = await loadFragment(languageNavPath);
+  }
+  if (!fragment) {
+    // eslint-disable-next-line no-console
+    console.error('[header] unable to load navigation fragment', { path: navPath });
+    return;
+  }
 
-  // decorate nav DOM
   block.textContent = '';
   const nav = document.createElement('nav');
   nav.id = 'nav';
   while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
 
+  // three authored sections, separated by --- in the nav document
   const classes = ['brand', 'sections', 'tools'];
   classes.forEach((c, i) => {
     const section = nav.children[i];
     if (section) section.classList.add(`nav-${c}`);
   });
 
-  const navBrand = nav.querySelector('.nav-brand');
-  const brandLink = navBrand.querySelector('.button');
-  if (brandLink) {
-    brandLink.className = '';
-    brandLink.closest('.button-container').className = '';
+  const brand = nav.querySelector('.nav-brand');
+  const sections = nav.querySelector('.nav-sections');
+  let tools = nav.querySelector('.nav-tools');
+
+  if (!tools) {
+    tools = document.createElement('div');
+    tools.className = 'nav-tools';
+    nav.append(tools);
   }
 
-  const navSections = nav.querySelector('.nav-sections');
-  if (navSections) {
-    navSections.querySelectorAll(':scope .default-content-wrapper > ul > li').forEach((navSection) => {
-      if (navSection.querySelector('ul')) navSection.classList.add('nav-drop');
-      navSection.addEventListener('click', () => {
-        if (isDesktop.matches) {
-          const expanded = navSection.getAttribute('aria-expanded') === 'true';
-          toggleAllNavSections(navSections);
-          navSection.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        }
-      });
-    });
+  // brand: use the image authored in da.live if present; otherwise fall
+  // back to the built-in Sportify Hub logo so the header never breaks if
+  // nothing (or the wrong thing) has been authored yet
+  if (brand) {
+    const brandAnchor = brand.querySelector('a');
+    const authoredMedia = brand.querySelector('picture') || brand.querySelector('img');
+    const homeHref = brandAnchor?.getAttribute('href') || '/';
+
+    brand.innerHTML = '';
+    const logoLink = document.createElement('a');
+    logoLink.href = homeHref;
+    logoLink.className = 'nav-logo';
+    logoLink.setAttribute('aria-label', 'Sportify Hub');
+
+    if (authoredMedia) {
+      const img = authoredMedia.tagName === 'PICTURE' ? authoredMedia.querySelector('img') : authoredMedia;
+      if (img) {
+        img.removeAttribute('width');
+        img.removeAttribute('height');
+        if (!img.alt) img.alt = 'Sportify Hub';
+      }
+      logoLink.append(authoredMedia);
+    } else {
+      logoLink.innerHTML = LOGO_SVG;
+    }
+
+    brand.append(logoLink);
   }
+
+  // unwrap authored links (out of their <p>/.button-container) so each one
+  // is a direct flex child of tools — CSS "order" only works on direct
+  // flex children, not on nested descendants. A wrapper may contain more
+  // than one link, so pull all of them out before removing the wrapper.
+  [...tools.children].forEach((child) => {
+    if (child.tagName === 'A') return;
+    const links = [...child.querySelectorAll('a')];
+    if (!links.length) return;
+    links.forEach((link) => tools.insertBefore(link, child));
+    child.remove();
+  });
+
+  decorateSections(sections);
+  decorateCart(tools);
+
+  // any plain authored link left in tools (e.g. "Sign In") gets a class for styling
+  tools.querySelectorAll('a:not(.nav-cart)').forEach((a) => a.classList.add('nav-signin'));
 
   // hamburger for mobile
   const hamburger = document.createElement('div');
@@ -157,15 +408,35 @@ export default async function decorate(block) {
   hamburger.innerHTML = `<button type="button" aria-controls="nav" aria-label="Open navigation">
       <span class="nav-hamburger-icon"></span>
     </button>`;
-  hamburger.addEventListener('click', () => toggleMenu(nav, navSections));
-  nav.prepend(hamburger);
+  hamburger.addEventListener('click', () => toggleMenu(nav));
+
+  // regroup into the Luma single-row layout
+  const mainRow = document.createElement('div');
+  mainRow.className = 'nav-main';
+  mainRow.append(hamburger);
+  if (brand) mainRow.append(brand);
+  if (sections) mainRow.append(sections);
+  mainRow.append(tools);
+
+  nav.textContent = '';
+  nav.append(mainRow);
+
+  buildSearch(nav);
+  buildRegionSelector(nav);
+
   nav.setAttribute('aria-expanded', 'false');
-  // prevent mobile nav behavior on window resize
-  toggleMenu(nav, navSections, isDesktop.matches);
-  isDesktop.addEventListener('change', () => toggleMenu(nav, navSections, isDesktop.matches));
+  toggleMenu(nav, isDesktop.matches);
+  isDesktop.addEventListener('change', () => toggleMenu(nav, isDesktop.matches));
 
   const navWrapper = document.createElement('div');
   navWrapper.className = 'nav-wrapper';
   navWrapper.append(nav);
   block.append(navWrapper);
+
+  // sticky shadow once scrolled
+  const onScroll = () => {
+    block.closest('header')?.classList.toggle('is-scrolled', window.scrollY > 10);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 }
