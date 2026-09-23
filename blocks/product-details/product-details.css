@@ -292,13 +292,16 @@
   background-color: #ff5500;
 }
 
+/* Explicitly ensuring the background color is white */
 .product-tabs-content {
-  background-color: #ffffff;
+  background-color: #ffffff !important;
+  background: #ffffff;
   border: 1px solid #e1e1e1;
   border-top: none;
   border-radius: 0 0 4px 4px;
   padding: 3rem;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .tab-pane {
