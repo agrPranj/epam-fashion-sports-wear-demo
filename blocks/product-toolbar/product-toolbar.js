@@ -78,8 +78,7 @@ export default function decorate(block) {
     (event) => {
       const value = event.detail.count;
 
-      countValue.textContent =
-        value === 1
+      countValue.textContent = value === 1
           ? '1 Item'
           : `${value} Items`;
     },
