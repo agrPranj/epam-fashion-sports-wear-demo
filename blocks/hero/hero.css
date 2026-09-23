@@ -320,3 +320,29 @@ main > .section.velocity-hero-section > .hero-wrapper {
     min-height: 660px;
   }
 }
+
+/* ==========================================================
+   OPTIONAL LEFT-IMAGE LAYOUT
+
+   Section Metadata:
+   Style | hero-image-left
+
+   Only changes the desktop layout.
+   Mobile retains the image-above-text presentation.
+   ========================================================== */
+
+@media (width >= 900px) {
+  main > .section.hero-image-left .hero.split .hero-layout {
+    grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
+  }
+
+  main > .section.hero-image-left .hero.split .hero-media {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  main > .section.hero-image-left .hero.split .hero-content {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
