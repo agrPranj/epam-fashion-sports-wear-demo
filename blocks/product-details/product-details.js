@@ -1,7 +1,7 @@
 export default async function decorate(block) {
   // 1. Get product ID from URL query parameters (e.g., ?id=24-WG09)
   const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get('id') || 'LLWP13.2-30'; // Fallback ID
+  const productId = urlParams.get('id') || 'LLWP11.1-28'; // Fallback ID
 
   block.textContent = ''; // Clear block content
 
