@@ -15,6 +15,17 @@ const ICONS = {
       <circle cx="10" cy="20" r="1.6" fill="currentColor"/>
       <circle cx="17.5" cy="20" r="1.6" fill="currentColor"/>
     </svg>`,
+  globe: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.8"/>
+    </svg>`,
+  chevronLeft: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+  chevronRight: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M9 5 L16 12 L9 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
 };
 
 // Sportify Hub logo — four-circle mark + wordmark, inlined so it stays crisp
@@ -153,6 +164,144 @@ function decorateCart(tools) {
 }
 
 /**
+ * Loads region/country data authored in da.live as a sheet (Region, Country,
+ * Path columns), which Edge Delivery Services automatically exposes as JSON.
+ * Path defaults to /region-nav.json — override via nav metadata
+ * "region-nav" if you author it elsewhere.
+ * @returns {Promise<Array<{region:string, country:string, path:string}>>}
+ */
+async function loadRegionData() {
+  const configPath = getMetadata('region-nav') || '/region-nav.json';
+  try {
+    const res = await fetch(configPath);
+    if (!res.ok) return [];
+    const json = await res.json();
+    const rows = json?.data || [];
+    return rows
+      .map((row) => ({
+        region: (row.Region || row.region || '').trim(),
+        country: (row.Country || row.country || '').trim(),
+        path: (row.Path || row.path || '').trim(),
+      }))
+      .filter((row) => row.region && row.country && row.path);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Builds the globe region/country selector: a toggle button plus a two-step
+ * panel (region list, then a searchable country list within that region).
+ * Renders nothing if no region data is configured, so the header never
+ * breaks or shows an empty globe when this hasn't been authored yet.
+ * @param {Element} nav the nav element
+ */
+async function buildRegionSelector(nav) {
+  const rows = await loadRegionData();
+  if (!rows.length) return;
+
+  const regions = [...new Set(rows.map((r) => r.region))];
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'nav-region';
+  wrapper.innerHTML = `
+    <button type="button" class="nav-region-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose your region and country">
+      ${ICONS.globe}
+    </button>
+    <div class="nav-region-panel">
+      <div class="nav-region-view" data-view="regions">
+        <p class="nav-region-title">Choose your Region</p>
+        <ul class="nav-region-list"></ul>
+      </div>
+      <div class="nav-region-view" data-view="countries" hidden>
+        <div class="nav-region-subheader">
+          <button type="button" class="nav-region-back" aria-label="Back to regions">${ICONS.chevronLeft}</button>
+          <p class="nav-region-title"></p>
+        </div>
+        <label class="sr-only" for="nav-region-search">Search country</label>
+        <input id="nav-region-search" class="nav-region-search" type="search" placeholder="Search"/>
+        <ul class="nav-region-list"></ul>
+      </div>
+    </div>`;
+
+  const toggle = wrapper.querySelector('.nav-region-toggle');
+  const regionView = wrapper.querySelector('[data-view="regions"]');
+  const countryView = wrapper.querySelector('[data-view="countries"]');
+  const regionList = regionView.querySelector('.nav-region-list');
+  const countryList = countryView.querySelector('.nav-region-list');
+  const countryTitle = countryView.querySelector('.nav-region-title');
+  const countrySearch = countryView.querySelector('.nav-region-search');
+  const backBtn = countryView.querySelector('.nav-region-back');
+
+  const closePanel = () => {
+    wrapper.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  };
+
+  const showRegions = () => {
+    countryView.hidden = true;
+    regionView.hidden = false;
+  };
+
+  const showCountries = (region) => {
+    countryTitle.textContent = region;
+    countrySearch.value = '';
+    countryList.innerHTML = '';
+    rows
+      .filter((r) => r.region === region)
+      .forEach((r) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = r.path;
+        a.textContent = r.country;
+        li.append(a);
+        countryList.append(li);
+      });
+    regionView.hidden = true;
+    countryView.hidden = false;
+    countrySearch.focus();
+  };
+
+  regions.forEach((region) => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerHTML = `<span>${region}</span>${ICONS.chevronRight}`;
+    btn.addEventListener('click', () => showCountries(region));
+    li.append(btn);
+    regionList.append(li);
+  });
+
+  backBtn.addEventListener('click', showRegions);
+
+  countrySearch.addEventListener('input', () => {
+    const q = countrySearch.value.trim().toLowerCase();
+    countryList.querySelectorAll('li').forEach((li) => {
+      li.hidden = !li.textContent.toLowerCase().includes(q);
+    });
+  });
+
+  toggle.addEventListener('click', () => {
+    const open = wrapper.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) showRegions();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) closePanel();
+  });
+
+  wrapper.addEventListener('keydown', (e) => {
+    if (e.code === 'Escape') {
+      closePanel();
+      toggle.focus();
+    }
+  });
+
+  nav.querySelector('.nav-tools').append(wrapper);
+}
+
+/**
  * Loads and decorates the Luma-style header.
  * @param {Element} block the header block element
  */
@@ -206,17 +355,32 @@ export default async function decorate(block) {
     nav.append(tools);
   }
 
-  // brand: replace whatever is authored (image, "Boilerplate" text, etc.)
-  // with the Sportify Hub logo, keeping only the authored link's href
+  // brand: use the image authored in da.live if present; otherwise fall
+  // back to the built-in Sportify Hub logo so the header never breaks if
+  // nothing (or the wrong thing) has been authored yet
   if (brand) {
     const brandAnchor = brand.querySelector('a');
+    const authoredMedia = brand.querySelector('picture') || brand.querySelector('img');
     const homeHref = brandAnchor?.getAttribute('href') || '/';
+
     brand.innerHTML = '';
     const logoLink = document.createElement('a');
     logoLink.href = homeHref;
     logoLink.className = 'nav-logo';
     logoLink.setAttribute('aria-label', 'Sportify Hub');
-    logoLink.innerHTML = LOGO_SVG;
+
+    if (authoredMedia) {
+      const img = authoredMedia.tagName === 'PICTURE' ? authoredMedia.querySelector('img') : authoredMedia;
+      if (img) {
+        img.removeAttribute('width');
+        img.removeAttribute('height');
+        if (!img.alt) img.alt = 'Sportify Hub';
+      }
+      logoLink.append(authoredMedia);
+    } else {
+      logoLink.innerHTML = LOGO_SVG;
+    }
+
     brand.append(logoLink);
   }
 
@@ -258,6 +422,7 @@ export default async function decorate(block) {
   nav.append(mainRow);
 
   buildSearch(nav);
+  buildRegionSelector(nav);
 
   nav.setAttribute('aria-expanded', 'false');
   toggleMenu(nav, isDesktop.matches);
