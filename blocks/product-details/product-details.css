@@ -247,7 +247,7 @@
 }
 
 /* =========================================
-   Product Tabs Section (Matching Screenshot)
+   Product Tabs Section & Review Styling
    ========================================= */
 .product-tabs-section {
   margin-top: 4rem;
@@ -316,6 +316,7 @@
   margin: 0 0 1.5rem 0;
 }
 
+/* Details List */
 .product-features-list {
   list-style: none;
   padding: 0;
@@ -334,24 +335,47 @@
 }
 
 .product-features-list .check-icon {
-  color: #27ae60; /* Vibrant green checkmark */
+  color: #27ae60;
   font-weight: bold;
   font-size: 1.1rem;
 }
 
-.write-review-btn {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #ff5500;
-  color: #fff;
-  border: none;
-  border-radius: 3px;
-  font-weight: 600;
-  cursor: pointer;
+/* Customer Reviews Section (Matching Screenshot) */
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
 }
 
-.write-review-btn:hover {
-  background-color: #e04b00;
+.review-item {
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.review-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.review-stars {
+  color: #f39c12;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.review-author {
+  font-weight: 700;
+  color: #222;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+
+.review-text {
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Error / Not Found states */

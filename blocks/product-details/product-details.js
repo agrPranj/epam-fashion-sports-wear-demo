@@ -1,7 +1,7 @@
 export default async function decorate(block) {
   // 1. Get product ID from URL query parameters (e.g., ?id=24-WG09)
   const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get('id') || '24-WG09'; // Fallback ID
+  const productId = urlParams.get('id') || 'LLWP13.2-30'; // Fallback ID
 
   block.textContent = ''; // Clear block content
 
@@ -37,7 +37,28 @@ export default async function decorate(block) {
     const productSku = product.sku || product.id;
     const productCategory = product.category || 'General';
 
-    // 4. Construct the Main Product Section + Tabs Section
+    // Fallbacks if arrays aren't in JSON
+    const productFeatures = product.features || [
+      "Breathable, moisture-wicking fabric",
+      "Four-way stretch for maximum mobility",
+      "Flatlock seams reduce chafing"
+    ];
+
+    const productReviews = product.reviews || [
+      { author: "Sarah M.", rating: 5, text: "Love this product! The fit is perfect and the quality is outstanding. Highly recommend!" },
+      { author: "Mike T.", rating: 4, text: "Great product, very comfortable. Would buy again." }
+    ];
+
+    // Helper to render star ratings
+    const renderStars = (rating) => {
+      let starsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        starsHtml += i <= rating ? '★' : '☆';
+      }
+      return starsHtml;
+    };
+
+    // 4. Construct the Main Product Section + Dynamic Tabs Section
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
@@ -51,7 +72,7 @@ export default async function decorate(block) {
 
           <div class="product-rating">
             <span class="stars">★★★★★</span>
-            <span class="review-count">23 Reviews</span>
+            <span class="review-count">${productReviews.length} Reviews</span>
           </div>
 
           <div class="product-pricing">
@@ -101,7 +122,7 @@ export default async function decorate(block) {
         </div>
       </div>
 
-      <!-- Product Tabs Section matching screenshot -->
+      <!-- Product Tabs Section (Details & Reviews matching screenshot) -->
       <div class="product-tabs-section">
         <div class="product-tabs-header">
           <button class="tab-btn active" data-tab="details">Details</button>
@@ -109,21 +130,28 @@ export default async function decorate(block) {
         </div>
 
         <div class="product-tabs-content">
+          <!-- Details Pane -->
           <div class="tab-pane active" id="details-pane">
             <h3 class="tabs-pane-title">Product Details</h3>
             <ul class="product-features-list">
-              <li><span class="check-icon">✓</span> Breathable, moisture-wicking fabric</li>
-              <li><span class="check-icon">✓</span> Four-way stretch for maximum mobility</li>
-              <li><span class="check-icon">✓</span> Flatlock seams reduce chafing</li>
-              <li><span class="check-icon">✓</span> Antimicrobial treatment prevents odor</li>
-              <li><span class="check-icon">✓</span> Made with sustainable materials</li>
+              ${productFeatures.map(feature => `
+                <li><span class="check-icon">✓</span> ${feature}</li>
+              `).join('')}
             </ul>
           </div>
 
+          <!-- Reviews Pane -->
           <div class="tab-pane" id="reviews-pane">
             <h3 class="tabs-pane-title">Customer Reviews</h3>
-            <p>Rated 4.8 out of 5 stars based on 23 customer reviews.</p>
-            <button class="write-review-btn">Write a Review</button>
+            <div class="reviews-list">
+              ${productReviews.map(review => `
+                <div class="review-item">
+                  <div class="review-stars">${renderStars(review.rating)}</div>
+                  <div class="review-author">${review.author}</div>
+                  <p class="review-text">${review.text}</p>
+                </div>
+              `).join('')}
+            </div>
           </div>
         </div>
       </div>
