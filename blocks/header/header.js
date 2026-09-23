@@ -206,17 +206,32 @@ export default async function decorate(block) {
     nav.append(tools);
   }
 
-  // brand: replace whatever is authored (image, "Boilerplate" text, etc.)
-  // with the Sportify Hub logo, keeping only the authored link's href
+  // brand: use the image authored in da.live if present; otherwise fall
+  // back to the built-in Sportify Hub logo so the header never breaks if
+  // nothing (or the wrong thing) has been authored yet
   if (brand) {
     const brandAnchor = brand.querySelector('a');
+    const authoredMedia = brand.querySelector('picture') || brand.querySelector('img');
     const homeHref = brandAnchor?.getAttribute('href') || '/';
+
     brand.innerHTML = '';
     const logoLink = document.createElement('a');
     logoLink.href = homeHref;
     logoLink.className = 'nav-logo';
     logoLink.setAttribute('aria-label', 'Sportify Hub');
-    logoLink.innerHTML = LOGO_SVG;
+
+    if (authoredMedia) {
+      const img = authoredMedia.tagName === 'PICTURE' ? authoredMedia.querySelector('img') : authoredMedia;
+      if (img) {
+        img.removeAttribute('width');
+        img.removeAttribute('height');
+        if (!img.alt) img.alt = 'Sportify Hub';
+      }
+      logoLink.append(authoredMedia);
+    } else {
+      logoLink.innerHTML = LOGO_SVG;
+    }
+
     brand.append(logoLink);
   }
 

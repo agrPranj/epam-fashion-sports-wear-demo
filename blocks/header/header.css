@@ -179,10 +179,13 @@ header .nav-logo {
   line-height: 0;
 }
 
-header .nav-logo svg {
+header .nav-logo svg,
+header .nav-logo img {
   display: block;
   width: auto;
   height: 24px;
+  max-width: 160px;
+  object-fit: contain;
 }
 
 @media (width >= 900px) {
@@ -190,8 +193,10 @@ header .nav-logo svg {
     justify-content: flex-start;
   }
 
-  header .nav-logo svg {
+  header .nav-logo svg,
+  header .nav-logo img {
     height: 42px;
+    max-width: 220px;
   }
 }
 
