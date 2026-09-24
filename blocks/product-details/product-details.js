@@ -45,9 +45,7 @@ export default async function decorate(block) {
     }) : [];
 
     // 5. Handle image path correctly checking capitalized "Image"
-    const imageUrl = product.Image
-      ? (product.Image.startsWith('/') ? product.Image : `/${product.Image}`)
-      : `/images/${product.ID}.jpg`;
+    const imageUrl = product.Image ? product.Image : `/images/${product.ID}.jpg`;
 
     const productSku = product.ID || productId;
     const productCategory = product.Category || 'General';
