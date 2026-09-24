@@ -41,11 +41,14 @@ export default async function decorate(block) {
       if (match) {
         return { name: match[1].trim(), hex: match[2].trim() };
       }
-      return { name: c.trim(), hex: '#cccccc' }; // Fallback hex if none provided
+      return { name: c.trim(), hex: '#cccccc' };
     }) : [];
 
-    // Handle image path (fallback if image column is missing in sheet)
-    const imageUrl = product.Image ? (product.Image.startsWith('/') ? product.Image : `/${product.Image}`) : `/images/${product.ID}.jpg`;
+    // 5. Handle image path correctly checking capitalized "Image"
+    const imageUrl = product.Image
+      ? (product.Image.startsWith('/') ? product.Image : `/${product.Image}`)
+      : `/images/${product.ID}.jpg`;
+
     const productSku = product.ID || productId;
     const productCategory = product.Category || 'General';
 
@@ -71,7 +74,7 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    // 5. Construct the Main Product Section + Tabs Section
+    // 6. Construct the Main Product Section + Tabs Section
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
@@ -170,7 +173,7 @@ export default async function decorate(block) {
       </div>
     `;
 
-    // 6. Add Interactive Event Listeners
+    // 7. Add Interactive Event Listeners
     block.querySelectorAll('.swatch').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         block.querySelectorAll('.swatch').forEach(b => b.classList.remove('selected'));
