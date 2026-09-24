@@ -2,47 +2,20 @@ export default function decorate(block) {
   const container = document.createElement('div');
   container.className = 'product-grid-container';
 
-  const row = block.children[0];
+  const productsUrl = '/data/products-data.json?sheet=en';
+  let products = [];
 
-  if (!row) {
-    return;
+  function normalizeProduct(product, index) {
+    return {
+      id: product.ID || `product-${index}`,
+      name: product.Name || 'Untitled product',
+      price: Number.parseFloat(product.Price) || 0,
+      displayPrice: product.Price ? `$${product.Price}` : '',
+      link: product.ID ? `/products/${encodeURIComponent(product.ID)}` : '#',
+      image: product.Image ? new URL(product.Image, new URL(productsUrl, window.location.href)).href : '',
+      originalIndex: index,
+    };
   }
-
-  const cells = [...row.children];
-
-  if (cells.length < 4) {
-    return;
-  }
-
-  const names = cells[0].textContent
-    .split('\n')
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  const prices = cells[1].textContent
-    .split('\n')
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  const links = cells[2].textContent
-    .split('\n')
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  const images = [...cells[3].querySelectorAll('img')]
-    .map((img) => img.src)
-    .filter(Boolean);
-
-  const products = names.map((name, index) => ({
-    name,
-    price: Number.parseFloat(
-      (prices[index] || '').replace(/[^0-9.]/g, ''),
-    ) || 0,
-    displayPrice: prices[index] || '',
-    link: links[index] || '#',
-    image: images[index] || '',
-    originalIndex: index,
-  }));
 
   function renderProducts(items) {
     container.replaceChildren();
@@ -50,6 +23,7 @@ export default function decorate(block) {
     items.forEach((product) => {
       const card = document.createElement('article');
       card.className = 'product-card';
+      card.dataset.productId = product.id;
 
       const imageLink = document.createElement('a');
       imageLink.href = product.link;
@@ -130,7 +104,29 @@ export default function decorate(block) {
     render(event.detail.sort);
   });
 
-  render();
-
   block.replaceChildren(container);
+
+  container.textContent = 'Loading products...';
+
+  fetch(productsUrl)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Product feed request failed: ${response.status}`);
+      }
+
+      return response.json();
+    })
+    .then((payload) => {
+      products = (Array.isArray(payload) ? payload : payload.data || [])
+        .map(normalizeProduct)
+        .filter((product) => product.name);
+
+      render();
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('Product feed loading failed', error);
+      container.textContent = 'Products could not be loaded.';
+      updateCount(0);
+    });
 }
