@@ -1,0 +1,134 @@
+/* Size Guide */
+
+.size-guide {
+  --guide-ink: #102a43;
+  --guide-muted: #475569;
+  --guide-border: #d8dee6;
+  --guide-surface: #f4f6f8;
+  --guide-link: #075985;
+}
+
+.size-guide .size-guide-panel {
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid var(--guide-border);
+  border-radius: 8px;
+  background-color: #fff;
+  color: var(--guide-ink);
+}
+
+.size-guide .size-guide-title {
+  margin: 0 0 16px;
+  color: var(--guide-ink);
+  font-size: 26px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.size-guide .size-guide-instructions {
+  max-width: 75ch;
+  margin: 0 0 24px;
+  color: var(--guide-muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Responsive table container */
+
+.size-guide .size-guide-table-wrapper {
+  max-width: 100%;
+  border: 1px solid var(--guide-border);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.size-guide .size-guide-table-wrapper:focus-visible {
+  outline: 3px solid var(--guide-link);
+  outline-offset: 4px;
+}
+
+.size-guide .size-guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.size-guide .size-guide-table th,
+.size-guide .size-guide-table td {
+  padding: 14px 16px;
+  text-align: start;
+  vertical-align: top;
+}
+
+.size-guide .size-guide-table th {
+  border-bottom: 1px solid var(--guide-border);
+  background-color: var(--guide-ink);
+  color: #fff;
+  font-weight: 700;
+}
+
+.size-guide .size-guide-table td {
+  color: var(--guide-ink);
+}
+
+.size-guide .size-guide-table tbody tr + tr td {
+  border-top: 1px solid var(--guide-border);
+}
+
+.size-guide .size-guide-table tbody tr:nth-child(even) {
+  background-color: var(--guide-surface);
+}
+
+/* Disclaimer and collection link */
+
+.size-guide .size-guide-disclaimer {
+  max-width: 85ch;
+  margin: 20px 0 0;
+  color: var(--guide-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.size-guide .size-guide-link-wrapper {
+  margin: 20px 0 0;
+}
+
+.size-guide a.size-guide-link:any-link {
+  display: inline-block;
+  padding: 8px 0;
+  color: var(--guide-link);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.size-guide a.size-guide-link:hover {
+  color: #0c4a6e;
+  text-decoration-thickness: 2px;
+}
+
+.size-guide a.size-guide-link:focus-visible {
+  outline: 3px solid var(--guide-link);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Desktop */
+
+@media (width >= 900px) {
+  .size-guide .size-guide-panel {
+    padding: 40px;
+  }
+
+  .size-guide .size-guide-title {
+    font-size: 30px;
+  }
+
+  .size-guide .size-guide-table th,
+  .size-guide .size-guide-table td {
+    padding: 16px 24px;
+  }
+}
