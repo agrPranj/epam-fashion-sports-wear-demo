@@ -69,10 +69,10 @@ export default async function decorate(block) {
 
   // Load the child blocks before moving their existing wrappers.
   // This avoids depending on when the section loader reaches them.
-    await panelBlocks.reduce(
-        (previousLoad, panelBlock) => previousLoad.then(() => loadBlock(panelBlock)),
-        Promise.resolve(),
-    );
+  await panelBlocks.reduce(
+    (previousLoad, panelBlock) => previousLoad.then(() => loadBlock(panelBlock)),
+    Promise.resolve(),
+  );
 
   tabsCount += 1;
   const prefix = `content-tabs-${tabsCount}`;
