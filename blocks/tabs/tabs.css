@@ -1,0 +1,101 @@
+/* ==========================================================
+   TABS
+   ========================================================== */
+
+.tabs {
+  --tabs-ink: #102a43;
+  --tabs-muted: #475569;
+  --tabs-border: #d8dee6;
+  --tabs-surface: #f4f6f8;
+  --tabs-active: #075985;
+
+  min-width: 0;
+}
+
+/* Tab navigation */
+.tabs .tabs-list {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  max-width: 100%;
+  margin: 0 0 24px;
+  padding: 6px;
+  border: 1px solid var(--tabs-border);
+  border-radius: 8px;
+  background-color: var(--tabs-surface);
+  overflow-x: auto;
+}
+
+.tabs .tabs-tab {
+  flex: 1 0 auto;
+  box-sizing: border-box;
+  min-height: 48px;
+  margin: 0;
+  padding: 12px 20px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--tabs-muted);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tabs .tabs-tab:hover {
+  background-color: #e2e8f0;
+  color: var(--tabs-ink);
+}
+
+.tabs .tabs-tab[aria-selected="true"] {
+  border-color: var(--tabs-active);
+  background-color: var(--tabs-active);
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+.tabs .tabs-tab:focus-visible {
+  outline: 3px solid var(--tabs-ink);
+  outline-offset: 2px;
+}
+
+/* Panels */
+.tabs .tabs-panels,
+.tabs .tabs-panel {
+  min-width: 0;
+}
+
+.tabs .tabs-panel[hidden] {
+  display: none;
+}
+
+.tabs .tabs-panel:focus-visible {
+  outline: 3px solid var(--tabs-active);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* The existing block wrapper is moved inside its panel. */
+.tabs .tabs-panel > div {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Desktop */
+@media (width >= 900px) {
+  .tabs .tabs-list {
+    gap: 12px;
+  }
+
+  .tabs .tabs-tab {
+    padding: 14px 28px;
+    font-size: 18px;
+  }
+}
