@@ -1,0 +1,399 @@
+/* Main Component Container */
+.product-details {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  box-sizing: border-box;
+  font-family: var(--body-font-family, sans-serif);
+  padding: 0 1rem;
+}
+
+/* Top Product Wrapper Grid */
+.product-main-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .product-main-wrapper {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Left Section: Image Gallery */
+.product-gallery-section {
+  width: 100%;
+  display: flex;
+}
+
+.product-gallery-section .product-main-image {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #e1e1e1;
+  border-radius: 4px;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.product-gallery-section .product-main-image img {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Right Section: Product Details Info */
+.product-info-section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.product-title {
+  font-size: 2.25rem;
+  font-weight: 400;
+  color: #222;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.product-rating {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.product-rating .stars {
+  color: #f39c12;
+  letter-spacing: 2px;
+  font-size: 1rem;
+}
+
+.product-pricing {
+  font-size: 1.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.product-pricing .current-price {
+  color: #ff5500;
+}
+
+.product-description {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* Option Groups (Size, Color, Quantity) */
+.option-group {
+  margin-bottom: 1.25rem;
+}
+
+.option-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #333;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+/* Size Buttons */
+.size-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.size-btn {
+  padding: 0.5rem 1.1rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  color: #333;
+}
+
+.size-btn:hover {
+  border-color: #333;
+}
+
+.size-btn.selected {
+  border-color: #ff5500;
+  background: #fff;
+  color: #ff5500;
+  font-weight: 600;
+}
+
+/* Color Swatches */
+.color-swatches {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  padding: 0;
+}
+
+.swatch.selected {
+  border-color: #333;
+  transform: scale(1.1);
+}
+
+/* Actions Bar & Quantity */
+.product-actions-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  height: 48px;
+}
+
+.quantity-selector button {
+  background: none;
+  border: none;
+  padding: 0 0.85rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.quantity-selector button:hover {
+  background-color: #f5f5f5;
+}
+
+.quantity-selector input {
+  width: 40px;
+  text-align: center;
+  border: none;
+  font-size: 1rem;
+  background: transparent;
+  font-weight: 600;
+}
+
+.quantity-selector input::-webkit-outer-spin-button,
+.quantity-selector input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Add to Cart Button */
+.add-to-cart-btn {
+  flex: 1;
+  height: 48px;
+  background-color: #ff5500;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #e04b00;
+}
+
+/* SKU and Category Footer Metadata */
+.product-metadata {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.product-metadata .meta-item strong {
+  color: #333;
+}
+
+/* =========================================
+   Product Tabs Section & Review Styling
+   ========================================= */
+.product-tabs-section {
+  margin-top: 4rem;
+  width: 100%;
+}
+
+.product-tabs-header {
+  display: flex;
+  gap: 2.5rem;
+  border-bottom: 1px solid #e1e1e1;
+  margin-bottom: 0;
+  padding-left: 0.5rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
+  padding: 0.75rem 0.5rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.tab-btn:hover {
+  color: #ff5500;
+}
+
+.tab-btn.active {
+  color: #ff5500;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #ff5500;
+}
+
+/* Crisp white background container */
+.product-tabs-content {
+  background-color: #ffffff !important;
+  background: #ffffff;
+  border: 1px solid #e1e1e1;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  padding: 3rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+.tabs-pane-title {
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #222;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Details List */
+.product-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.product-features-list li {
+  font-size: 0.95rem;
+  color: #444;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.product-features-list .check-icon {
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Customer Reviews Section */
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.review-item {
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.review-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.review-stars {
+  color: #f39c12;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.review-author {
+  font-weight: 700;
+  color: #222;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+
+.review-text {
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Error / Not Found states */
+.product-not-found, .product-error {
+  text-align: center;
+  padding: 4rem 1rem;
+  width: 100%;
+}
+
+.return-home-btn {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #000;
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+}
