@@ -69,10 +69,10 @@ export default async function decorate(block) {
 
   // Load the child blocks before moving their existing wrappers.
   // This avoids depending on when the section loader reaches them.
-  for (const panelBlock of panelBlocks) {
-    // eslint-disable-next-line no-await-in-loop
-    await loadBlock(panelBlock);
-  }
+ await panelBlocks.reduce(
+  (previousLoad, panelBlock) => previousLoad.then(() => loadBlock(panelBlock)),
+  Promise.resolve(),
+);
 
   tabsCount += 1;
   const prefix = `content-tabs-${tabsCount}`;
