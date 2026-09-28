@@ -15,10 +15,10 @@ export default async function decorate(block) {
     const jsonResponse = await response.json();
     const productsArray = jsonResponse.data || [];
 
-    // 3. Find the product inside the 'data' array matching the ID (case-insensitive check on ID/SKU)
+    // 3. Find the product inside the 'data' array matching the lowercase 'id' field
     const product = productsArray.find(p =>
-      (p.ID && p.ID.trim().toLowerCase() === productId.trim().toLowerCase()) ||
-      (p.SKU && p.SKU.trim().toLowerCase() === productId.trim().toLowerCase())
+      (p.id && p.id.trim().toLowerCase() === productId.trim().toLowerCase()) ||
+      (p.sku && p.sku.trim().toLowerCase() === productId.trim().toLowerCase())
     );
 
     if (!product) {
@@ -33,10 +33,10 @@ export default async function decorate(block) {
     }
 
     // 4. Parse comma-separated strings into usable arrays for Sizes and Colors
-    const sizes = product.Sizes ? product.Sizes.split(',').map(s => s.trim()) : [];
+    const sizes = product.sizes ? product.sizes.split(',').map(s => s.trim()) : [];
 
-    // Colors format in sheet: "Green (#66bb6a)" -> Parse name and hex
-    const colors = product.Colors ? product.Colors.split(',').map(c => {
+    // Colors format: "Green (#66bb6a)" -> Parse name and hex
+    const colors = product.colors ? product.colors.split(',').map(c => {
       const match = c.match(/(.*?)\s*\((#[0-9a-fA-F]{3,6})\)/);
       if (match) {
         return { name: match[1].trim(), hex: match[2].trim() };
@@ -44,14 +44,20 @@ export default async function decorate(block) {
       return { name: c.trim(), hex: '#cccccc' };
     }) : [];
 
-    // 5. Handle image path correctly checking capitalized "Image"
-    const imageUrl = product.Image ? product.Image : `/images/${product.ID}.jpg`;
+    // 5. Handle image path (Supports absolute URLs like AEM Cloud or relative paths)
+    let imageUrl = product.image || '';
+    if (imageUrl && !imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+      imageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+    }
+    if (!imageUrl) {
+      imageUrl = `/images/${product.id}.jpg`;
+    }
 
-    const productSku = product.ID || productId;
-    const productCategory = product.Category || 'General';
+    const productSku = product.id || productId;
+    const productCategory = product.category || 'General';
 
     // Fallback features and reviews for tabs
-    const productFeatures = product.Features ? product.Features.split('|').map(f => f.trim()) : [
+    const productFeatures = product.features ? product.features.split('|').map(f => f.trim()) : [
       "Breathable, moisture-wicking fabric",
       "Four-way stretch for maximum mobility",
       "Flatlock seams reduce chafing",
@@ -77,12 +83,12 @@ export default async function decorate(block) {
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
           <div class="product-main-image">
-            <img src="${imageUrl}" alt="${product.Name}" />
+            <img src="${imageUrl}" alt="${product.name || 'Product Image'}" />
           </div>
         </div>
 
         <div class="product-info-section">
-          <h1 class="product-title">${product.Name}</h1>
+          <h1 class="product-title">${product.name}</h1>
 
           <div class="product-rating">
             <span class="stars">★★★★★</span>
@@ -90,10 +96,10 @@ export default async function decorate(block) {
           </div>
 
           <div class="product-pricing">
-            <span class="current-price">$${typeof product.Price === 'string' ? parseFloat(product.Price).toFixed(2) : product.Price}</span>
+            <span class="current-price">$${typeof product.price === 'string' ? parseFloat(product.price).toFixed(2) : product.price}</span>
           </div>
 
-          <p class="product-description">${product.Description || ''}</p>
+          <p class="product-description">${product.description || ''}</p>
 
           ${sizes.length > 0 ? `
             <div class="option-group">
