@@ -1,51 +1,85 @@
 export default function decorate(block) {
-  const rows = [...block.children];
+  const row = block.children[0];
+
+  if (!row) return;
+
+  const cells = [...row.children];
+
+  if (cells.length < 2) return;
+
+  const groupNames = cells[0].textContent
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const optionGroups = cells[1].textContent
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
 
   const container = document.createElement('div');
   container.className = 'shop-by-container';
 
-  rows.forEach((row) => {
-    const cells = [...row.children];
+  const title = document.createElement('h2');
+  title.className = 'shop-by-title';
+  title.textContent = 'Shop By';
 
-    if (cells.length < 2) {
-      return;
-    }
+  const groups = document.createElement('div');
+  groups.className = 'shop-by-groups';
 
-    const category = cells[0].textContent.trim();
-    const values = cells[1].textContent
+  groupNames.forEach((groupName, index) => {
+    const optionsText = optionGroups[index] || '';
+
+    const options = optionsText
       .split(',')
-      .map((value) => value.trim())
+      .map((item) => item.trim())
       .filter(Boolean);
+
+    const groupKey = groupName.toLowerCase();
 
     const group = document.createElement('div');
     group.className = 'filter-group';
 
     const heading = document.createElement('h3');
-    heading.textContent = category;
-
-    group.appendChild(heading);
+    heading.textContent = groupName;
 
     const list = document.createElement('ul');
 
-    values.forEach((value) => {
+    options.forEach((option) => {
       const item = document.createElement('li');
 
       const label = document.createElement('label');
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.value = value;
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = option;
 
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(` ${value}`));
+      input.addEventListener('change', () => {
+        document.dispatchEvent(
+          new CustomEvent('catalog:filter-change', {
+            detail: {
+              group: groupKey,
+              value: option,
+              checked: input.checked,
+            },
+          }),
+        );
+      });
 
-      item.appendChild(label);
-      list.appendChild(item);
+      label.append(
+        input,
+        document.createTextNode(option),
+      );
+
+      item.append(label);
+      list.append(item);
     });
 
-    group.appendChild(list);
-    container.appendChild(group);
+    group.append(heading, list);
+    groups.append(group);
   });
+
+  container.append(title, groups);
 
   block.replaceChildren(container);
 }
