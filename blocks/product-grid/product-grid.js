@@ -6,13 +6,18 @@ export default function decorate(block) {
   let products = [];
 
   function normalizeProduct(product, index) {
+    const id = product.id || product.ID;
+    const name = product.name || product.Name;
+    const price = product.price ?? product.Price;
+    const image = product.image || product.Image;
+
     return {
-      id: product.ID || `product-${index}`,
-      name: product.Name || 'Untitled product',
-      price: Number.parseFloat(product.Price) || 0,
-      displayPrice: product.Price ? `$${product.Price}` : '',
-      link: product.ID ? `/products/${encodeURIComponent(product.ID)}` : '#',
-      image: product.Image ? new URL(product.Image, new URL(productsUrl, window.location.href)).href : '',
+      id: id || `product-${index}`,
+      name: name || 'Untitled product',
+      price: Number.parseFloat(price) || 0,
+      displayPrice: price ? `$${price}` : '',
+      link: id ? `/products/${encodeURIComponent(id)}` : '#',
+      image: image ? new URL(image, new URL(productsUrl, window.location.href)).href : '',
       originalIndex: index,
     };
   }
