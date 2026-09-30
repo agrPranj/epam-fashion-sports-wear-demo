@@ -102,6 +102,94 @@ main > .section > div {
   }
 }
 
+/* ==========================================================
+   HOMEPAGE SHOPPING CTA
+   Section Metadata: Style | shop-cta
+   ========================================================== */
+
+main > .section.shop-cta {
+  margin: 0;
+  padding: 48px 0;
+  background-color: #102a43;
+  color: #fff;
+  text-align: center;
+}
+
+main > .section.shop-cta > .default-content-wrapper {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+main .section.shop-cta h2 {
+  margin: 0 0 20px;
+  color: #fff;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+main .section.shop-cta p {
+  max-width: 60ch;
+  margin: 0 auto 24px;
+  color: #e8f0f7;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+main .section.shop-cta p.button-wrapper {
+  margin: 28px 0 0;
+}
+
+main .section.shop-cta a:any-link {
+  color: #fff;
+  text-underline-offset: 4px;
+}
+
+main .section.shop-cta a.button.primary {
+  box-sizing: border-box;
+  min-height: 48px;
+  max-width: 100%;
+  padding: 14px 28px;
+  border: 2px solid #c2410c;
+  border-radius: 4px;
+  background-color: #c2410c;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+}
+
+main .section.shop-cta a.button.primary:hover {
+  border-color: #9a3412;
+  background-color: #9a3412;
+  color: #fff;
+}
+
+main .section.shop-cta a:focus-visible {
+  outline: 3px solid #facc15;
+  outline-offset: 4px;
+}
+
+@media (width >= 900px) {
+  main > .section.shop-cta {
+    padding: 64px 0;
+  }
+
+  main .section.shop-cta p {
+    font-size: 18px;
+  }
+
+  main .section.shop-cta a.button.primary {
+    min-height: 56px;
+    font-size: 18px;
+  }
+}
 
 /* =========================================================
    WOMEN CATEGORY INTRO
@@ -260,3 +348,4 @@ main > .section.shop-by-container.product-toolbar-container.product-grid-contain
     font-size: 32px;
   }
 }
+
