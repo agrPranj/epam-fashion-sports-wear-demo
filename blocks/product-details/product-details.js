@@ -15,10 +15,10 @@ export default async function decorate(block) {
     const jsonResponse = await response.json();
     const productsArray = jsonResponse.data || [];
 
-    // 3. Find the product inside the 'data' array matching the lowercase 'id' field
+    // 3. Find the product matching the id (case-insensitive)
     const product = productsArray.find(p =>
       (p.id && p.id.trim().toLowerCase() === productId.trim().toLowerCase()) ||
-      (p.sku && p.sku.trim().toLowerCase() === productId.trim().toLowerCase())
+      (p.ID && p.ID.trim().toLowerCase() === productId.trim().toLowerCase())
     );
 
     if (!product) {
@@ -32,10 +32,8 @@ export default async function decorate(block) {
       return;
     }
 
-    // 4. Parse comma-separated strings into usable arrays for Sizes and Colors
+    // 4. Parse Sizes and Colors
     const sizes = product.sizes ? product.sizes.split(',').map(s => s.trim()) : [];
-
-    // Colors format: "Green (#66bb6a)" -> Parse name and hex
     const colors = product.colors ? product.colors.split(',').map(c => {
       const match = c.match(/(.*?)\s*\((#[0-9a-fA-F]{3,6})\)/);
       if (match) {
@@ -44,19 +42,36 @@ export default async function decorate(block) {
       return { name: c.trim(), hex: '#cccccc' };
     }) : [];
 
-    // 5. Handle image path (Supports absolute URLs like AEM Cloud or relative paths)
-    let imageUrl = product.image || '';
-    if (imageUrl && !imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-      imageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-    }
-    if (!imageUrl) {
-      imageUrl = `/images/${product.id}.jpg`;
-    }
+    // 5. Build Image URLs & Base Path
+    // Format ID for path: e.g. "LLWP11.1-28" -> "llwp11-1-28"
+    const rawId = product.id || product.ID || productId;
+    const formattedIdForPath = rawId.toLowerCase().replace(/\./g, '-');
 
-    const productSku = product.id || productId;
+    const category = (product.category || 'women').toLowerCase();
+    const subCategory = (product.subCategory || product.subcategory || 'bottoms').toLowerCase();
+
+    const damBasePath = `/content/dam/Velocity%20Sports%20EDS%20DA%20POC/${category}/${subCategory}/${formattedIdForPath}`;
+
+    // Split comma-separated image filenames from JSON
+    const imageFilenames = product.image
+      ? product.image.split(',').map(img => img.trim()).filter(Boolean)
+      : [`${formattedIdForPath}_main.jpg`];
+
+    // Map filenames to full absolute/relative URLs
+    const imageUrls = imageFilenames.map(filename => {
+      if (filename.startsWith('http://') || filename.startsWith('https://')) {
+        return filename;
+      }
+      return `${damBasePath}/${filename}`;
+    });
+
+    // Identify the main image (contains 'main' in filename) or default to first image
+    let mainImageIndex = imageUrls.findIndex(url => url.toLowerCase().includes('main'));
+    if (mainImageIndex === -1) mainImageIndex = 0;
+
+    const productSku = rawId;
     const productCategory = product.category || 'General';
 
-    // Fallback features and reviews for tabs
     const productFeatures = product.features ? product.features.split('|').map(f => f.trim()) : [
       "Breathable, moisture-wicking fabric",
       "Four-way stretch for maximum mobility",
@@ -78,13 +93,22 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    // 6. Construct the Main Product Section + Tabs Section
+    // 6. Construct DOM Structure with Main Image & Thumbnails Below
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
           <div class="product-main-image">
-            <img src="${imageUrl}" alt="${product.name || 'Product Image'}" />
+            <img id="main-product-img" src="${imageUrls[mainImageIndex]}" alt="${product.name || 'Product Image'}" />
           </div>
+          ${imageUrls.length > 1 ? `
+            <div class="product-thumbnails-row">
+              ${imageUrls.map((url, idx) => `
+                <button class="thumb-btn ${idx === mainImageIndex ? 'active' : ''}" data-image-url="${url}">
+                  <img src="${url}" alt="Thumbnail ${idx + 1}" />
+                </button>
+              `).join('')}
+            </div>
+          ` : ''}
         </div>
 
         <div class="product-info-section">
@@ -142,7 +166,7 @@ export default async function decorate(block) {
         </div>
       </div>
 
-      <!-- Product Tabs Section (Details & Reviews) -->
+      <!-- Product Tabs Section -->
       <div class="product-tabs-section">
         <div class="product-tabs-header">
           <button class="tab-btn active" data-tab="details">Details</button>
@@ -150,7 +174,6 @@ export default async function decorate(block) {
         </div>
 
         <div class="product-tabs-content">
-          <!-- Details Pane -->
           <div class="tab-pane active" id="details-pane">
             <h3 class="tabs-pane-title">Product Details</h3>
             <ul class="product-features-list">
@@ -160,7 +183,6 @@ export default async function decorate(block) {
             </ul>
           </div>
 
-          <!-- Reviews Pane -->
           <div class="tab-pane" id="reviews-pane">
             <h3 class="tabs-pane-title">Customer Reviews</h3>
             <div class="reviews-list">
@@ -177,7 +199,21 @@ export default async function decorate(block) {
       </div>
     `;
 
-    // 7. Add Interactive Event Listeners
+    // 7. Interactive Thumbnail Switching
+    const mainImgEl = block.querySelector('#main-product-img');
+    block.querySelectorAll('.thumb-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        block.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('active'));
+        const targetBtn = e.currentTarget;
+        targetBtn.classList.add('active');
+        const newImgUrl = targetBtn.getAttribute('data-image-url');
+        if (mainImgEl && newImgUrl) {
+          mainImgEl.src = newImgUrl;
+        }
+      });
+    });
+
+    // Option Listeners
     block.querySelectorAll('.swatch').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         block.querySelectorAll('.swatch').forEach(b => b.classList.remove('selected'));
