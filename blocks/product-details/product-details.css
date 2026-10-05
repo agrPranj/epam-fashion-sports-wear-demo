@@ -55,11 +55,12 @@
   display: block;
 }
 
-/* Thumbnails row below main image */
+/* Thumbnails row stretched to match the full width of the main image */
 .product-thumbnails-row {
   display: flex;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .thumb-btn {
@@ -67,13 +68,14 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   padding: 0.35rem;
-  width: 75px;
-  height: 75px;
+  flex: 1; /* Automatically stretches each thumbnail evenly to fill the entire width */
+  height: 95px; /* Increased height for larger thumbnail view */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 
 .thumb-btn img {
