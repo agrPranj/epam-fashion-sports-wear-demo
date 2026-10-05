@@ -50,7 +50,7 @@ export default async function decorate(block) {
     const category = (product.category || 'women').toLowerCase();
     const subCategory = (product.subCategory || product.subcategory || 'bottoms').toLowerCase();
 
-    const damBasePath = `/content/dam/Velocity%20Sports%20EDS%20DA%20POC/${category}/${subCategory}/${formattedIdForPath}`;
+    const damBasePath = "https://publish-p24103-e71623.adobeaemcloud.com" + `/content/dam/Velocity%20Sports%20EDS%20DA%20POC/${category}/${subCategory}/${formattedIdForPath}`;
 
     // Split comma-separated image filenames from JSON
     const imageFilenames = product.image
