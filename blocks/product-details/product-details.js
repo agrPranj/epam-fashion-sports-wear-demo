@@ -42,27 +42,32 @@ export default async function decorate(block) {
       return { name: c.trim(), hex: '#cccccc' };
     }) : [];
 
-    // 5. Build Image URLs & Base Path
-    // Format ID for path: e.g. "LLWP11.1-28" -> "llwp11-1-28"
+    // 5. Build Image URLs with AEM Cloud Domain
+    const aemDomain = 'https://publish-p24103-e71623.adobeaemcloud.com';
+
     const rawId = product.id || product.ID || productId;
     const formattedIdForPath = rawId.toLowerCase().replace(/\./g, '-');
 
     const category = (product.category || 'women').toLowerCase();
     const subCategory = (product.subCategory || product.subcategory || 'bottoms').toLowerCase();
 
-    const damBasePath = "https://publish-p24103-e71623.adobeaemcloud.com" + `/content/dam/Velocity%20Sports%20EDS%20DA%20POC/${category}/${subCategory}/${formattedIdForPath}`;
+    const damBasePath = `/content/dam/Velocity%20Sports%20EDS%20DA%20POC/${category}/${subCategory}/${formattedIdForPath}`;
 
     // Split comma-separated image filenames from JSON
     const imageFilenames = product.image
       ? product.image.split(',').map(img => img.trim()).filter(Boolean)
       : [`${formattedIdForPath}_main.jpg`];
 
-    // Map filenames to full absolute/relative URLs
+    // Map filenames to full URLs with AEM Cloud domain prefix
     const imageUrls = imageFilenames.map(filename => {
       if (filename.startsWith('http://') || filename.startsWith('https://')) {
         return filename;
       }
-      return `${damBasePath}/${filename}`;
+      if (filename.startsWith('/content/dam')) {
+        return `${aemDomain}${filename}`;
+      }
+      // If it's just a filename like 'wp11-green_main.jpg'
+      return `${aemDomain}${damBasePath}/${filename}`;
     });
 
     // Identify the main image (contains 'main' in filename) or default to first image
