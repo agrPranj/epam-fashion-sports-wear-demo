@@ -37,7 +37,7 @@
 .product-gallery-section .product-main-image {
   width: 100%;
   border: 1px solid #e1e1e1;
-  border-radius: 4px;
+  border-radius: 6px;
   background-color: #fff;
   display: flex;
   align-items: center;
@@ -55,11 +55,11 @@
   display: block;
 }
 
-/* Thumbnails Carousel Container (Max 4 items visible, arrows if > 4) */
+/* Thumbnails Container with Hover-Reveal Arrows */
 .product-thumbnails-container {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -76,26 +76,26 @@
   box-sizing: border-box;
   scroll-behavior: smooth;
   overflow-x: auto;
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  scrollbar-width: none;
 }
 
 .product-thumbnails-row::-webkit-scrollbar {
-  display: none; /* Hide scrollbar for Chrome/Safari */
+  display: none;
 }
 
 .thumb-btn {
   background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #e1e1e1;
+  border-radius: 6px;
   padding: 0.35rem;
   /* Exactly 4 items visible at a time */
   flex: 0 0 calc(25% - 0.57rem);
-  height: 95px;
+  height: 90px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .thumb-btn:hover {
-  border-color: #666;
+  border-color: #999;
 }
 
 .thumb-btn.active {
@@ -114,26 +114,48 @@
   box-shadow: 0 0 0 1px #ff5500;
 }
 
-/* Carousel Arrow Buttons */
+/* Modern Hover-Reveal Carousel Arrows */
 .carousel-arrow {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 35px;
-  height: 95px;
-  font-size: 1.2rem;
-  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d1d1d1;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: #333;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  transition: background-color 0.2s, border-color 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  opacity: 0; /* Hidden by default */
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease, background-color 0.2s;
+}
+
+.prev-arrow {
+  left: -14px;
+}
+
+.next-arrow {
+  right: -14px;
+}
+
+/* Reveal arrows on container hover */
+.product-thumbnails-container:hover .carousel-arrow {
+  opacity: 1;
+  visibility: visible;
 }
 
 .carousel-arrow:hover {
-  background-color: #f2f2f2;
+  background: #fff;
   border-color: #333;
+  color: #ff5500;
 }
 
 /* Right Section: Product Details Info */
@@ -210,7 +232,7 @@
   border: 1px solid #ccc;
   background: #fff;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s;
@@ -260,7 +282,7 @@
   display: flex;
   align-items: center;
   border: 1px solid #ccc;
-  border-radius: 3px;
+  border-radius: 4px;
   background: #fff;
   height: 48px;
 }
@@ -300,7 +322,7 @@
   background-color: #ff5500;
   color: #fff;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 0.95rem;
   font-weight: bold;
   letter-spacing: 0.5px;
@@ -380,7 +402,7 @@
   background: #ffffff;
   border: 1px solid #e1e1e1;
   border-top: none;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 6px 6px;
   padding: 3rem;
   box-sizing: border-box;
   width: 100%;

@@ -97,10 +97,10 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    // Determine if carousel arrows are needed (> 4 images)
+    // Determine if hover carousel arrows are needed (> 4 images)
     const hasMoreThanFour = imageUrls.length > 4;
 
-    // 6. Construct DOM Structure with Carousel Thumbnails
+    // 6. Construct DOM Structure with Hover-Reveal Carousel
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
@@ -109,7 +109,7 @@ export default async function decorate(block) {
           </div>
           ${imageUrls.length > 1 ? `
             <div class="product-thumbnails-container ${hasMoreThanFour ? 'has-carousel' : ''}">
-              ${hasMoreThanFour ? `<button class="carousel-arrow prev-arrow" aria-label="Previous">&lt;</button>` : ''}
+              ${hasMoreThanFour ? `<button class="carousel-arrow prev-arrow" aria-label="Previous">‹</button>` : ''}
 
               <div class="product-thumbnails-viewport">
                 <div class="product-thumbnails-row">
@@ -121,7 +121,7 @@ export default async function decorate(block) {
                 </div>
               </div>
 
-              ${hasMoreThanFour ? `<button class="carousel-arrow next-arrow" aria-label="Next">&gt;</button>` : ''}
+              ${hasMoreThanFour ? `<button class="carousel-arrow next-arrow" aria-label="Next">›</button>` : ''}
             </div>
           ` : ''}
         </div>
@@ -234,7 +234,7 @@ export default async function decorate(block) {
     const nextArrow = block.querySelector('.next-arrow');
 
     if (thumbRow && prevArrow && nextArrow) {
-      const scrollAmount = 300; // Pixels to scroll on click
+      const scrollAmount = 280;
       prevArrow.addEventListener('click', () => {
         thumbRow.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
       });
