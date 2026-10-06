@@ -42,7 +42,7 @@ export default async function decorate(block) {
       return { name: c.trim(), hex: '#cccccc' };
     }) : [];
 
-    // 5. Build Image URLs with AEM Cloud Domain
+    // 5. Build Media URLs (Images & Videos mixed in the 'image' string) with AEM Cloud Domain
     const aemDomain = 'https://publish-p24103-e71623.adobeaemcloud.com';
 
     const rawId = product.id || product.ID || productId;
@@ -53,25 +53,37 @@ export default async function decorate(block) {
 
     const damBasePath = `/content/dam/Velocity%20Sports%20EDS%20DA%20POC/${category}/${subCategory}/${formattedIdForPath}`;
 
-    // Split comma-separated image filenames from JSON
-    const imageFilenames = product.image
-      ? product.image.split(',').map(img => img.trim()).filter(Boolean)
+    // Split comma-separated filenames from the 'image' property
+    const filenames = product.image
+      ? product.image.split(',').map(item => item.trim()).filter(Boolean)
       : [`${formattedIdForPath}_main.jpg`];
 
-    // Map filenames to full URLs with AEM Cloud domain prefix
-    const imageUrls = imageFilenames.map(filename => {
-      if (filename.startsWith('http://') || filename.startsWith('https://')) {
-        return filename;
+    // Helper to check if a filename is a video
+    const isVideoFile = (filename) => /\.(mp4|webm|mov|ogg)$/i.test(filename);
+
+    // Separate images and videos so videos always appear at the end
+    const imageFilenames = filenames.filter(f => !isVideoFile(f));
+    const videoFilenames = filenames.filter(f => isVideoFile(f));
+    const sortedFilenames = [...imageFilenames, ...videoFilenames];
+
+    // Map filenames to full URLs
+    const mediaItems = sortedFilenames.map(filename => {
+      let url = filename;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = url.startsWith('/content/dam') ? `${aemDomain}${url}` : `${aemDomain}${damBasePath}/${url}`;
       }
-      if (filename.startsWith('/content/dam')) {
-        return `${aemDomain}${filename}`;
-      }
-      return `${aemDomain}${damBasePath}/${filename}`;
+      return {
+        url,
+        type: isVideoFile(filename) ? 'video' : 'image',
+      };
     });
 
-    // Identify the main image (contains 'main' in filename) or default to first image
-    let mainImageIndex = imageUrls.findIndex(url => url.toLowerCase().includes('main'));
-    if (mainImageIndex === -1) mainImageIndex = 0;
+    // Identify main display index (default to first image or item with 'main')
+    let mainIndex = mediaItems.findIndex(item => item.type === 'image' && item.url.toLowerCase().includes('main'));
+    if (mainIndex === -1) {
+      mainIndex = mediaItems.findIndex(item => item.type === 'image');
+      if (mainIndex === -1) mainIndex = 0;
+    }
 
     const productSku = rawId;
     const productCategory = product.category || 'General';
@@ -97,25 +109,35 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    // Determine if hover carousel arrows are needed (> 4 images)
-    const hasMoreThanFour = imageUrls.length > 4;
+    const hasMoreThanFour = mediaItems.length > 4;
 
-    // 6. Construct DOM Structure with Hover-Reveal Carousel
+    // Render initial active media element (image or video)
+    const activeMedia = mediaItems[mainIndex] || { type: 'image', url: '' };
+    const initialMainDisplayHtml = activeMedia.type === 'video'
+      ? `<video id="main-product-video" src="${activeMedia.url}" controls autoplay muted playsinline></video>`
+      : `<img id="main-product-img" src="${activeMedia.url}" alt="${product.name || 'Product Image'}" />`;
+
+    // 6. Construct DOM Structure
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
-          <div class="product-main-image">
-            <img id="main-product-img" src="${imageUrls[mainImageIndex]}" alt="${product.name || 'Product Image'}" />
+          <div class="product-main-image" id="main-display-container">
+            ${initialMainDisplayHtml}
           </div>
-          ${imageUrls.length > 1 ? `
+
+          ${mediaItems.length > 1 ? `
             <div class="product-thumbnails-container ${hasMoreThanFour ? 'has-carousel' : ''}">
               ${hasMoreThanFour ? `<button class="carousel-arrow prev-arrow" aria-label="Previous">‹</button>` : ''}
 
               <div class="product-thumbnails-viewport">
                 <div class="product-thumbnails-row">
-                  ${imageUrls.map((url, idx) => `
-                    <button class="thumb-btn ${idx === mainImageIndex ? 'active' : ''}" data-image-url="${url}">
-                      <img src="${url}" alt="Thumbnail ${idx + 1}" />
+                  <!-- Render Image Thumbnails -->
+                  ${mediaItems.map((item, idx) => `
+                    <button class="thumb-btn ${idx === mainIndex ? 'active' : ''} ${item.type === 'video' ? 'video-thumb-btn' : ''}" data-type="${item.type}" data-target-url="${item.url}">
+                      ${item.type === 'video'
+                        ? `<video src="${item.url}" muted preload="metadata"></video><div class="play-icon-overlay">▶</div>`
+                        : `<img src="${item.url}" alt="Thumbnail ${idx + 1}" />`
+                      }
                     </button>
                   `).join('')}
                 </div>
@@ -214,16 +236,21 @@ export default async function decorate(block) {
       </div>
     `;
 
-    // 7. Interactive Thumbnail & Carousel Arrow Logic
-    const mainImgEl = block.querySelector('#main-product-img');
+    // 7. Interactive Media Switcher (Image vs Video)
+    const mainContainer = block.querySelector('#main-display-container');
     block.querySelectorAll('.thumb-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         block.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('active'));
         const targetBtn = e.currentTarget;
         targetBtn.classList.add('active');
-        const newImgUrl = targetBtn.getAttribute('data-image-url');
-        if (mainImgEl && newImgUrl) {
-          mainImgEl.src = newImgUrl;
+
+        const mediaType = targetBtn.getAttribute('data-type');
+        const mediaUrl = targetBtn.getAttribute('data-target-url');
+
+        if (mediaType === 'video') {
+          mainContainer.innerHTML = `<video id="main-product-video" src="${mediaUrl}" controls autoplay muted playsinline></video>`;
+        } else {
+          mainContainer.innerHTML = `<img id="main-product-img" src="${mediaUrl}" alt="${product.name || 'Product Image'}" />`;
         }
       });
     });
