@@ -51,7 +51,7 @@ export default async function decorate(block) {
     const category = (product.category || 'women').toLowerCase();
     const subCategory = (product.subCategory || product.subcategory || 'bottoms').toLowerCase();
 
-    const damBasePath = `/content/dam/Velocity%20Sports%20EDS%20DA%20POC/${category}/${subCategory}/${formattedIdForPath}`;
+    const damBasePath = `/content/dam/sportify/${category}/${subCategory}/${formattedIdForPath}`;
 
     // Split comma-separated filenames from the 'image' property
     const filenames = product.image
