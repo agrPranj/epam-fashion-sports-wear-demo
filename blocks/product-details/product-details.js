@@ -66,7 +66,6 @@ export default async function decorate(block) {
       if (filename.startsWith('/content/dam')) {
         return `${aemDomain}${filename}`;
       }
-      // If it's just a filename like 'wp11-green_main.jpg'
       return `${aemDomain}${damBasePath}/${filename}`;
     });
 
@@ -98,7 +97,10 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    // 6. Construct DOM Structure with Main Image & Thumbnails Below
+    // Determine if carousel arrows are needed (> 4 images)
+    const hasMoreThanFour = imageUrls.length > 4;
+
+    // 6. Construct DOM Structure with Carousel Thumbnails
     block.innerHTML = `
       <div class="product-main-wrapper">
         <div class="product-gallery-section">
@@ -106,12 +108,20 @@ export default async function decorate(block) {
             <img id="main-product-img" src="${imageUrls[mainImageIndex]}" alt="${product.name || 'Product Image'}" />
           </div>
           ${imageUrls.length > 1 ? `
-            <div class="product-thumbnails-row">
-              ${imageUrls.map((url, idx) => `
-                <button class="thumb-btn ${idx === mainImageIndex ? 'active' : ''}" data-image-url="${url}">
-                  <img src="${url}" alt="Thumbnail ${idx + 1}" />
-                </button>
-              `).join('')}
+            <div class="product-thumbnails-container ${hasMoreThanFour ? 'has-carousel' : ''}">
+              ${hasMoreThanFour ? `<button class="carousel-arrow prev-arrow" aria-label="Previous">&lt;</button>` : ''}
+
+              <div class="product-thumbnails-viewport">
+                <div class="product-thumbnails-row">
+                  ${imageUrls.map((url, idx) => `
+                    <button class="thumb-btn ${idx === mainImageIndex ? 'active' : ''}" data-image-url="${url}">
+                      <img src="${url}" alt="Thumbnail ${idx + 1}" />
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              ${hasMoreThanFour ? `<button class="carousel-arrow next-arrow" aria-label="Next">&gt;</button>` : ''}
             </div>
           ` : ''}
         </div>
@@ -204,7 +214,7 @@ export default async function decorate(block) {
       </div>
     `;
 
-    // 7. Interactive Thumbnail Switching
+    // 7. Interactive Thumbnail & Carousel Arrow Logic
     const mainImgEl = block.querySelector('#main-product-img');
     block.querySelectorAll('.thumb-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -217,6 +227,21 @@ export default async function decorate(block) {
         }
       });
     });
+
+    // Carousel Scrolling Arrows
+    const thumbRow = block.querySelector('.product-thumbnails-row');
+    const prevArrow = block.querySelector('.prev-arrow');
+    const nextArrow = block.querySelector('.next-arrow');
+
+    if (thumbRow && prevArrow && nextArrow) {
+      const scrollAmount = 300; // Pixels to scroll on click
+      prevArrow.addEventListener('click', () => {
+        thumbRow.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      });
+      nextArrow.addEventListener('click', () => {
+        thumbRow.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      });
+    }
 
     // Option Listeners
     block.querySelectorAll('.swatch').forEach((btn) => {
