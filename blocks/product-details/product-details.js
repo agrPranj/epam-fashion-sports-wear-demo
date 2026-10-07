@@ -6,20 +6,17 @@ export default async function decorate(block) {
   block.textContent = ''; // Clear block content
 
   try {
-    // 2. Fetch the AEM EDS sheet JSON using the specified path
-    const response = await fetch('/data/products-data.json?sheet=en');
+    // 2. Format ID for the dynamic asset JSON path: e.g. "LLWP11.1-28" -> "llwp11-1-28"
+    const formattedIdForPath = productId.toLowerCase().replace(/\./g, '-');
+    const assetJsonUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}.1.json`;
+
+    // 3. Fetch the product-specific JSON asset from AEM
+    const response = await fetch(assetJsonUrl);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const jsonResponse = await response.json();
-    const productsArray = jsonResponse.data || [];
-
-    // 3. Find the product matching the id (case-insensitive)
-    const product = productsArray.find(p =>
-      (p.id && p.id.trim().toLowerCase() === productId.trim().toLowerCase()) ||
-      (p.ID && p.ID.trim().toLowerCase() === productId.trim().toLowerCase())
-    );
+    const product = await response.json();
 
     if (!product) {
       block.innerHTML = `
@@ -33,60 +30,78 @@ export default async function decorate(block) {
     }
 
     // 4. Parse Sizes and Colors
-    const sizes = product.sizes ? product.sizes.split(',').map(s => s.trim()) : [];
-    const colors = product.colors ? product.colors.split(',').map(c => {
-      const match = c.match(/(.*?)\s*\((#[0-9a-fA-F]{3,6})\)/);
-      if (match) {
-        return { name: match[1].trim(), hex: match[2].trim() };
+    const sizes = Array.isArray(product.sizes)
+      ? product.sizes
+      : (product.sizes ? product.sizes.split(',').map(s => s.trim()) : []);
+
+    const colors = Array.isArray(product.colors)
+      ? product.colors
+      : (product.colors ? product.colors.split(',').map(c => {
+          const match = c.match(/(.*?)\s*\((#[0-9a-fA-F]{3,6})\)/);
+          if (match) {
+            return { name: match[1].trim(), hex: match[2].trim() };
+          }
+          return { name: c.trim(), hex: '#cccccc' };
+        }) : []);
+
+    // 5. Inspect JSON keys/values to extract assets where the key or value contains an image/video filename
+    const assetBaseUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}`;
+
+    const imageExtensions = /\.(jpg|jpeg|png|webp|gif|svg)$/i;
+    const videoExtensions = /\.(mp4|webm|mov|ogg)$/i;
+
+    const extractedMedia = [];
+    const processedUrls = new Set();
+
+    // Scan both keys and values in the JSON response
+    Object.entries(product).forEach(([key, val]) => {
+      // Check if the key itself is a filename (e.g. "wp11-green_main.jpg": {...})
+      // or if the value contains a filename
+      const candidates = [key];
+      if (typeof val === 'string') {
+        candidates.push(val);
       }
-      return { name: c.trim(), hex: '#cccccc' };
-    }) : [];
 
-    // 5. Build Media URLs (Images & Videos mixed in the 'image' string) with AEM Cloud Domain
-    const aemDomain = 'https://publish-p24103-e71623.adobeaemcloud.com';
-
-    const rawId = product.id || product.ID || productId;
-    const formattedIdForPath = rawId.toLowerCase().replace(/\./g, '-');
-
-    const category = (product.category || 'women').toLowerCase();
-    const subCategory = (product.subCategory || product.subcategory || 'bottoms').toLowerCase();
-
-    const damBasePath = `/content/dam/sportify/${category}/${subCategory}/${formattedIdForPath}`;
-
-    // Split comma-separated filenames from the 'image' property
-    const filenames = product.image
-      ? product.image.split(',').map(item => item.trim()).filter(Boolean)
-      : [`${formattedIdForPath}_main.jpg`];
-
-    // Helper to check if a filename is a video
-    const isVideoFile = (filename) => /\.(mp4|webm|mov|ogg)$/i.test(filename);
-
-    // Separate images and videos so videos always appear at the end
-    const imageFilenames = filenames.filter(f => !isVideoFile(f));
-    const videoFilenames = filenames.filter(f => isVideoFile(f));
-    const sortedFilenames = [...imageFilenames, ...videoFilenames];
-
-    // Map filenames to full URLs
-    const mediaItems = sortedFilenames.map(filename => {
-      let url = filename;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = url.startsWith('/content/dam') ? `${aemDomain}${url}` : `${aemDomain}${damBasePath}/${url}`;
-      }
-      return {
-        url,
-        type: isVideoFile(filename) ? 'video' : 'image',
-      };
+      candidates.forEach((candidate) => {
+        const trimmed = candidate.trim();
+        if (imageExtensions.test(trimmed) || videoExtensions.test(trimmed)) {
+          // Extract just the filename if it's a full path
+          const filename = trimmed.split('/').pop();
+          if (filename) {
+            const fullUrl = `${assetBaseUrl}/${filename}`;
+            if (!processedUrls.has(fullUrl)) {
+              processedUrls.add(fullUrl);
+              extractedMedia.push({
+                url: fullUrl,
+                type: videoExtensions.test(filename) ? 'video' : 'image',
+              });
+            }
+          }
+        }
+      });
     });
 
-    // Identify main display index (default to first image or item with 'main')
-    let mainIndex = mediaItems.findIndex(item => item.type === 'image' && item.url.toLowerCase().includes('main'));
+    // Fallback if no media keys were detected
+    const mediaItems = extractedMedia.length > 0 ? extractedMedia : [
+      { url: `${assetBaseUrl}/${formattedIdForPath}_main.jpg`, type: 'image' }
+    ];
+
+    // Sort media: Images first, Videos always at the end
+    const imagesList = mediaItems.filter(item => item.type === 'image');
+    const videosList = mediaItems.filter(item => item.type === 'video');
+    const sortedMediaItems = [...imagesList, ...videosList];
+
+    let mainIndex = sortedMediaItems.findIndex(item => item.type === 'image' && item.url.toLowerCase().includes('main'));
     if (mainIndex === -1) {
-      mainIndex = mediaItems.findIndex(item => item.type === 'image');
+      mainIndex = sortedMediaItems.findIndex(item => item.type === 'image');
       if (mainIndex === -1) mainIndex = 0;
     }
 
-    const productSku = rawId;
-    const productCategory = product.category || 'General';
+    const productSku = product.id || product.ID || productId;
+    const productCategory = product.category || product.Category || 'women';
+    const productName = product.name || product.Name || 'Product';
+    const productPrice = product.price || product.Price || '0.00';
+    const productDescription = product.description || product.Description || '';
 
     const productFeatures = product.features ? product.features.split('|').map(f => f.trim()) : [
       "Breathable, moisture-wicking fabric",
@@ -109,13 +124,12 @@ export default async function decorate(block) {
       return starsHtml;
     };
 
-    const hasMoreThanFour = mediaItems.length > 4;
+    const hasMoreThanFour = sortedMediaItems.length > 4;
+    const activeMedia = sortedMediaItems[mainIndex] || { type: 'image', url: '' };
 
-    // Render initial active media element (image or video)
-    const activeMedia = mediaItems[mainIndex] || { type: 'image', url: '' };
     const initialMainDisplayHtml = activeMedia.type === 'video'
       ? `<video id="main-product-video" src="${activeMedia.url}" controls autoplay muted playsinline></video>`
-      : `<img id="main-product-img" src="${activeMedia.url}" alt="${product.name || 'Product Image'}" />`;
+      : `<img id="main-product-img" src="${activeMedia.url}" alt="${productName}" />`;
 
     // 6. Construct DOM Structure
     block.innerHTML = `
@@ -125,14 +139,13 @@ export default async function decorate(block) {
             ${initialMainDisplayHtml}
           </div>
 
-          ${mediaItems.length > 1 ? `
+          ${sortedMediaItems.length > 1 ? `
             <div class="product-thumbnails-container ${hasMoreThanFour ? 'has-carousel' : ''}">
-              ${hasMoreThanFour ? `<button class="carousel-arrow prev-arrow" aria-label="Previous">‹</button>` : ''}
+              <button class="carousel-arrow prev-arrow" aria-label="Previous" style="display: none;">‹</button>
 
               <div class="product-thumbnails-viewport">
                 <div class="product-thumbnails-row">
-                  <!-- Render Image Thumbnails -->
-                  ${mediaItems.map((item, idx) => `
+                  ${sortedMediaItems.map((item, idx) => `
                     <button class="thumb-btn ${idx === mainIndex ? 'active' : ''} ${item.type === 'video' ? 'video-thumb-btn' : ''}" data-type="${item.type}" data-target-url="${item.url}">
                       ${item.type === 'video'
                         ? `<video src="${item.url}" muted preload="metadata"></video><div class="play-icon-overlay">▶</div>`
@@ -143,13 +156,13 @@ export default async function decorate(block) {
                 </div>
               </div>
 
-              ${hasMoreThanFour ? `<button class="carousel-arrow next-arrow" aria-label="Next">›</button>` : ''}
+              <button class="carousel-arrow next-arrow" aria-label="Next" style="display: none;">›</button>
             </div>
           ` : ''}
         </div>
 
         <div class="product-info-section">
-          <h1 class="product-title">${product.name}</h1>
+          <h1 class="product-title">${productName}</h1>
 
           <div class="product-rating">
             <span class="stars">★★★★★</span>
@@ -157,10 +170,10 @@ export default async function decorate(block) {
           </div>
 
           <div class="product-pricing">
-            <span class="current-price">$${typeof product.price === 'string' ? parseFloat(product.price).toFixed(2) : product.price}</span>
+            <span class="current-price">$${typeof productPrice === 'string' && !productPrice.startsWith('$') ? parseFloat(productPrice).toFixed(2) : productPrice}</span>
           </div>
 
-          <p class="product-description">${product.description || ''}</p>
+          <p class="product-description">${productDescription}</p>
 
           ${sizes.length > 0 ? `
             <div class="option-group">
@@ -236,7 +249,7 @@ export default async function decorate(block) {
       </div>
     `;
 
-    // 7. Interactive Media Switcher (Image vs Video)
+    // 7. Interactive Media Switcher & Intelligent Carousel Arrows
     const mainContainer = block.querySelector('#main-display-container');
     block.querySelectorAll('.thumb-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -250,17 +263,28 @@ export default async function decorate(block) {
         if (mediaType === 'video') {
           mainContainer.innerHTML = `<video id="main-product-video" src="${mediaUrl}" controls autoplay muted playsinline></video>`;
         } else {
-          mainContainer.innerHTML = `<img id="main-product-img" src="${mediaUrl}" alt="${product.name || 'Product Image'}" />`;
+          mainContainer.innerHTML = `<img id="main-product-img" src="${mediaUrl}" alt="${productName}" />`;
         }
       });
     });
 
-    // Carousel Scrolling Arrows
+    // Carousel Scrolling & Visibility Logic for Arrows
     const thumbRow = block.querySelector('.product-thumbnails-row');
     const prevArrow = block.querySelector('.prev-arrow');
     const nextArrow = block.querySelector('.next-arrow');
 
     if (thumbRow && prevArrow && nextArrow) {
+      const updateArrowsVisibility = () => {
+        const { scrollLeft, scrollWidth, clientWidth } = thumbRow;
+        const tolerance = 2;
+
+        const showLeft = scrollLeft > tolerance;
+        const showRight = scrollLeft < (scrollWidth - clientWidth - tolerance);
+
+        prevArrow.style.display = showLeft ? 'flex' : 'none';
+        nextArrow.style.display = showRight ? 'flex' : 'none';
+      };
+
       const scrollAmount = 280;
       prevArrow.addEventListener('click', () => {
         thumbRow.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
@@ -268,6 +292,11 @@ export default async function decorate(block) {
       nextArrow.addEventListener('click', () => {
         thumbRow.scrollBy({ left: scrollAmount, behavior: 'smooth' });
       });
+
+      thumbRow.addEventListener('scroll', updateArrowsVisibility);
+      window.addEventListener('resize', updateArrowsVisibility);
+
+      setTimeout(updateArrowsVisibility, 50);
     }
 
     // Option Listeners
