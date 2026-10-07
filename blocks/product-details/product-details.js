@@ -6,17 +6,20 @@ export default async function decorate(block) {
   block.textContent = ''; // Clear block content
 
   try {
-    // 2. Format ID for the dynamic asset JSON path: e.g. "LLWP11.1-28" -> "llwp11-1-28"
-    const formattedIdForPath = productId.toLowerCase().replace(/\./g, '-');
-    const assetJsonUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}.1.json`;
-
-    // 3. Fetch the product-specific JSON asset from AEM
-    const response = await fetch(assetJsonUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // 2. Fetch general product details from your main catalog sheet endpoint
+    const catalogResponse = await fetch('/data/products-data.json?sheet=en');
+    if (!catalogResponse.ok) {
+      throw new Error(`Failed to fetch catalog data! status: ${catalogResponse.status}`);
     }
 
-    const product = await response.json();
+    const catalogJson = await catalogResponse.json();
+    const productsArray = catalogJson.data || [];
+
+    // Find the product matching the id (case-insensitive)
+    const product = productsArray.find(p =>
+      (p.id && p.id.trim().toLowerCase() === productId.trim().toLowerCase()) ||
+      (p.ID && p.ID.trim().toLowerCase() === productId.trim().toLowerCase())
+    );
 
     if (!product) {
       block.innerHTML = `
@@ -29,7 +32,21 @@ export default async function decorate(block) {
       return;
     }
 
-    // 4. Parse Sizes and Colors
+    // 3. Fetch specific asset keys directly from the asset JSON endpoint
+    const formattedIdForPath = productId.toLowerCase().replace(/\./g, '-');
+    const assetJsonUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}.1.json`;
+
+    let assetJson = {};
+    try {
+      const assetResponse = await fetch(assetJsonUrl);
+      if (assetResponse.ok) {
+        assetJson = await assetResponse.json();
+      }
+    } catch (err) {
+      console.warn('Could not fetch asset JSON endpoint, using fallback image extraction.', err);
+    }
+
+    // 4. Parse Sizes and Colors from catalog product
     const sizes = Array.isArray(product.sizes)
       ? product.sizes
       : (product.sizes ? product.sizes.split(',').map(s => s.trim()) : []);
@@ -44,7 +61,7 @@ export default async function decorate(block) {
           return { name: c.trim(), hex: '#cccccc' };
         }) : []);
 
-    // 5. Inspect JSON keys/values to extract assets where the key or value contains an image/video filename
+    // 5. Extract asset filenames from the KEYS of the asset JSON response
     const assetBaseUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}`;
 
     const imageExtensions = /\.(jpg|jpeg|png|webp|gif|svg)$/i;
@@ -53,35 +70,33 @@ export default async function decorate(block) {
     const extractedMedia = [];
     const processedUrls = new Set();
 
-    // Scan both keys and values in the JSON response
-    Object.entries(product).forEach(([key, val]) => {
-      // Check if the key itself is a filename (e.g. "wp11-green_main.jpg": {...})
-      // or if the value contains a filename
-      const candidates = [key];
-      if (typeof val === 'string') {
-        candidates.push(val);
-      }
-
-      candidates.forEach((candidate) => {
-        const trimmed = candidate.trim();
-        if (imageExtensions.test(trimmed) || videoExtensions.test(trimmed)) {
-          // Extract just the filename if it's a full path
-          const filename = trimmed.split('/').pop();
-          if (filename) {
-            const fullUrl = `${assetBaseUrl}/${filename}`;
-            if (!processedUrls.has(fullUrl)) {
-              processedUrls.add(fullUrl);
-              extractedMedia.push({
-                url: fullUrl,
-                type: videoExtensions.test(filename) ? 'video' : 'image',
-              });
-            }
-          }
+    // Scan the keys of the asset JSON response
+    Object.keys(assetJson).forEach((key) => {
+      const trimmedKey = key.trim();
+      if (imageExtensions.test(trimmedKey) || videoExtensions.test(trimmedKey)) {
+        const fullUrl = `${assetBaseUrl}/${trimmedKey}`;
+        if (!processedUrls.has(fullUrl)) {
+          processedUrls.add(fullUrl);
+          extractedMedia.push({
+            url: fullUrl,
+            type: videoExtensions.test(trimmedKey) ? 'video' : 'image',
+          });
         }
-      });
+      }
     });
 
-    // Fallback if no media keys were detected
+    // Fallback: If no asset keys found in asset JSON, check product.image field or default main image
+    if (extractedMedia.length === 0 && product.image) {
+      const filenames = product.image.split(',').map(i => i.trim()).filter(Boolean);
+      filenames.forEach(fn => {
+        const fullUrl = fn.startsWith('http') ? fn : `${assetBaseUrl}/${fn}`;
+        extractedMedia.push({
+          url: fullUrl,
+          type: videoExtensions.test(fn) ? 'video' : 'image',
+        });
+      });
+    }
+
     const mediaItems = extractedMedia.length > 0 ? extractedMedia : [
       { url: `${assetBaseUrl}/${formattedIdForPath}_main.jpg`, type: 'image' }
     ];
