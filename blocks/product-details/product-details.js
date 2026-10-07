@@ -32,21 +32,17 @@ export default async function decorate(block) {
       return;
     }
 
-    // 3. Fetch specific asset keys directly from the asset JSON endpoint
+    // 3. Fetch specific asset JSON from AEM
     const formattedIdForPath = productId.toLowerCase().replace(/\./g, '-');
     const assetJsonUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}.1.json`;
 
-    let assetJson = {};
-    try {
-      const assetResponse = await fetch(assetJsonUrl);
-      if (assetResponse.ok) {
-        assetJson = await assetResponse.json();
-      }
-    } catch (err) {
-      console.warn('Could not fetch asset JSON endpoint, using fallback image extraction.', err);
+    const assetResponse = await fetch(assetJsonUrl);
+    if (!assetResponse.ok) {
+      throw new Error(`Failed to fetch asset JSON! status: ${assetResponse.status}`);
     }
+    const assetJson = await assetResponse.json();
 
-    // 4. Parse Sizes and Colors from catalog product
+    // 4. Parse Sizes and Colors
     const sizes = Array.isArray(product.sizes)
       ? product.sizes
       : (product.sizes ? product.sizes.split(',').map(s => s.trim()) : []);
@@ -61,49 +57,45 @@ export default async function decorate(block) {
           return { name: c.trim(), hex: '#cccccc' };
         }) : []);
 
-    // 5. Extract asset filenames from the KEYS of the asset JSON response
+    // 5. Extract assets strictly from the KEYS of the asset JSON response
     const assetBaseUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}`;
-
     const imageExtensions = /\.(jpg|jpeg|png|webp|gif|svg)$/i;
     const videoExtensions = /\.(mp4|webm|mov|ogg)$/i;
 
     const extractedMedia = [];
     const processedUrls = new Set();
 
-    // Scan the keys of the asset JSON response
-    Object.keys(assetJson).forEach((key) => {
-      const trimmedKey = key.trim();
-      if (imageExtensions.test(trimmedKey) || videoExtensions.test(trimmedKey)) {
-        const fullUrl = `${assetBaseUrl}/${trimmedKey}`;
-        if (!processedUrls.has(fullUrl)) {
-          processedUrls.add(fullUrl);
-          extractedMedia.push({
-            url: fullUrl,
-            type: videoExtensions.test(trimmedKey) ? 'video' : 'image',
-          });
+    const scanObjectForKeys = (obj) => {
+      if (!obj || typeof obj !== 'object') return;
+      Object.entries(obj).forEach(([key, val]) => {
+        const trimmedKey = key.trim();
+        // Check if the key itself is an image or video filename
+        if (imageExtensions.test(trimmedKey) || videoExtensions.test(trimmedKey)) {
+          const fullUrl = `${assetBaseUrl}/${trimmedKey}`;
+          if (!processedUrls.has(fullUrl)) {
+            processedUrls.add(fullUrl);
+            extractedMedia.push({
+              url: fullUrl,
+              type: videoExtensions.test(trimmedKey) ? 'video' : 'image',
+            });
+          }
         }
-      }
-    });
-
-    // Fallback: If no asset keys found in asset JSON, check product.image field or default main image
-    if (extractedMedia.length === 0 && product.image) {
-      const filenames = product.image.split(',').map(i => i.trim()).filter(Boolean);
-      filenames.forEach(fn => {
-        const fullUrl = fn.startsWith('http') ? fn : `${assetBaseUrl}/${fn}`;
-        extractedMedia.push({
-          url: fullUrl,
-          type: videoExtensions.test(fn) ? 'video' : 'image',
-        });
+        // Recursively check nested child objects (like rendition nodes)
+        if (typeof val === 'object' && val !== null) {
+          scanObjectForKeys(val);
+        }
       });
+    };
+
+    scanObjectForKeys(assetJson);
+
+    if (extractedMedia.length === 0) {
+      throw new Error(`No valid image or video keys found in asset JSON for ID: ${productId}`);
     }
 
-    const mediaItems = extractedMedia.length > 0 ? extractedMedia : [
-      { url: `${assetBaseUrl}/${formattedIdForPath}_main.jpg`, type: 'image' }
-    ];
-
     // Sort media: Images first, Videos always at the end
-    const imagesList = mediaItems.filter(item => item.type === 'image');
-    const videosList = mediaItems.filter(item => item.type === 'video');
+    const imagesList = extractedMedia.filter(item => item.type === 'image');
+    const videosList = extractedMedia.filter(item => item.type === 'video');
     const sortedMediaItems = [...imagesList, ...videosList];
 
     let mainIndex = sortedMediaItems.findIndex(item => item.type === 'image' && item.url.toLowerCase().includes('main'));
