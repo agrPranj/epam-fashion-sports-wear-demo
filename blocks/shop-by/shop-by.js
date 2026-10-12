@@ -1,4 +1,15 @@
 export default function decorate(block) {
+  function normalizeGroupName(value) {
+    const normalized = value.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    if (normalized === 'size' || normalized === 'sizes') return 'sizes';
+    if (normalized === 'category' || normalized === 'categories') return 'category';
+    if (normalized === 'subcategory' || normalized === 'subcategories') return 'subcategory';
+    if (normalized === 'price' || normalized === 'prices') return 'price';
+
+    return normalized;
+  }
+
   const row = block.children[0];
 
   if (!row) return;
@@ -35,7 +46,9 @@ export default function decorate(block) {
       .map((item) => item.trim())
       .filter(Boolean);
 
-    const groupKey = groupName.toLowerCase();
+    const groupKey = normalizeGroupName(groupName);
+
+    if (groupKey === 'color' || groupKey === 'colors') return;
 
     const group = document.createElement('div');
     group.className = 'filter-group';
