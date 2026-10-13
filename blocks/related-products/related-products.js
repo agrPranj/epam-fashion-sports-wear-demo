@@ -82,36 +82,74 @@ export default async function decorate(block) {
   // 5. Limit to 4 related products
   related = related.slice(0, 4);
 
+  // 6. Fetch images for each related product from AEM DAM
+  const productsWithImages = await Promise.all(
+    related.map(async (product) => {
+      const productId = product.id || product.ID || '';
+      const formattedId = productId.toLowerCase().replace(/\./g, '-');
+      const assetJsonUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedId}.1.json`;
+
+      let mainImageUrl = '';
+
+      try {
+        const assetResponse = await fetch(assetJsonUrl);
+        if (assetResponse.ok) {
+          const assetJson = await assetResponse.json();
+          const assetBaseUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedId}`;
+          const imageExtensions = /\.(jpg|jpeg|png|webp|gif|svg)$/i;
+
+          // Scan for image keys in the JSON
+          const findImages = (obj) => {
+            const images = [];
+            if (!obj || typeof obj !== 'object') return images;
+
+            Object.entries(obj).forEach(([key, val]) => {
+              const trimmedKey = key.trim();
+              if (imageExtensions.test(trimmedKey)) {
+                images.push({
+                  url: `${assetBaseUrl}/${trimmedKey}`,
+                  filename: trimmedKey
+                });
+              }
+              if (typeof val === 'object' && val !== null) {
+                images.push(...findImages(val));
+              }
+            });
+            return images;
+          };
+
+          const images = findImages(assetJson);
+
+          // Find main image or use first available
+          const mainImage = images.find(img => img.filename.toLowerCase().includes('main'));
+          mainImageUrl = mainImage ? mainImage.url : (images[0] ? images[0].url : '');
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch images for product ${productId}:`, error);
+      }
+
+      return {
+        ...product,
+        imageUrl: mainImageUrl
+      };
+    })
+  );
+
   // 7. Render the related products grid
   block.innerHTML = `
     <h2 class="related-title">Related Products</h2>
     <div class="related-grid">
-      ${related.map(product => {
+      ${productsWithImages.map(product => {
         const productId = product.id || product.ID || '';
         const productName = product.name || product.Name || 'Product';
         const productPrice = product.price || product.Price || '0.00';
-
-        // Build image URL - fetch from AEM DAM assets
-        const formattedId = productId.toLowerCase().replace(/\./g, '-');
-
-        // Try to get main image URL from product data
-        let imageUrl = '';
-        if (product.image || product.Image) {
-          const images = (product.image || product.Image || '').split(',');
-          const mainImage = images.find(img => img.toLowerCase().includes('main')) || images[0];
-          if (mainImage) {
-            imageUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedId}/${mainImage.trim()}`;
-          }
-        } else {
-          // Fallback to a default pattern
-          imageUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedId}/main.jpg`;
-        }
+        const imageUrl = product.imageUrl || '';
 
         return `
           <div class="related-card">
             <a href="?id=${productId}">
               <div class="related-img-wrap">
-                <img src="${imageUrl}" alt="${productName}" loading="lazy" onerror="this.style.display='none'" />
+                ${imageUrl ? `<img src="${imageUrl}" alt="${productName}" loading="lazy" />` : '<div class="no-image">No Image</div>'}
               </div>
               <div class="related-info">
                 <div class="related-name">${productName}</div>
