@@ -79,13 +79,12 @@ export default async function decorate(block) {
   // 5. Limit to 4 related products
   related = related.slice(0, 4);
 
-  // 6. Fetch images from Adobe AEM DAM for each product (same as product-details)
+  // 6. Fetch images from Adobe AEM DAM for each product (EXACT SAME LOGIC as product-details.js)
   const productsWithImages = await Promise.all(
     related.map(async (product) => {
       const productId = product.id || product.ID || '';
-      const productName = product.name || product.Name || 'Product';
 
-      // Format ID for path (same as product-details)
+      // Format ID for path (same as product-details.js line 36)
       const formattedIdForPath = productId.toLowerCase().replace(/\./g, '-');
       const assetJsonUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}.1.json`;
 
@@ -94,15 +93,17 @@ export default async function decorate(block) {
       try {
         const assetResponse = await fetch(assetJsonUrl);
         if (!assetResponse.ok) {
-          console.warn(`[Related Products] Failed to fetch asset JSON for ${productId}: ${assetResponse.status}`);
+          console.warn(`[Related Products] Asset JSON not found for ${productId} (${assetResponse.status})`);
           return { ...product, imageUrl: '' };
         }
 
         const assetJson = await assetResponse.json();
+        console.log(`[Related Products] Asset JSON for ${productId}:`, assetJson);
 
-        // Extract assets from JSON keys (same logic as product-details)
+        // Extract assets strictly from the KEYS of the asset JSON response (same as product-details.js line 60-90)
         const assetBaseUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}`;
         const imageExtensions = /\.(jpg|jpeg|png|webp|gif|svg)$/i;
+        const videoExtensions = /\.(mp4|webm|mov|ogg)$/i;
 
         const extractedMedia = [];
         const processedUrls = new Set();
@@ -111,16 +112,19 @@ export default async function decorate(block) {
           if (!obj || typeof obj !== 'object') return;
           Object.entries(obj).forEach(([key, val]) => {
             const trimmedKey = key.trim();
-            if (imageExtensions.test(trimmedKey)) {
+            // Check if the key itself is an image or video filename
+            if (imageExtensions.test(trimmedKey) || videoExtensions.test(trimmedKey)) {
               const fullUrl = `${assetBaseUrl}/${trimmedKey}`;
               if (!processedUrls.has(fullUrl)) {
                 processedUrls.add(fullUrl);
                 extractedMedia.push({
                   url: fullUrl,
-                  filename: trimmedKey,
+                  type: videoExtensions.test(trimmedKey) ? 'video' : 'image',
+                  filename: trimmedKey
                 });
               }
             }
+            // Recursively check nested child objects (like rendition nodes)
             if (typeof val === 'object' && val !== null) {
               scanObjectForKeys(val);
             }
@@ -129,19 +133,32 @@ export default async function decorate(block) {
 
         scanObjectForKeys(assetJson);
 
+        console.log(`[Related Products] Extracted ${extractedMedia.length} media items for ${productId}:`, extractedMedia);
+
         if (extractedMedia.length === 0) {
-          console.warn(`[Related Products] No images found for ${productId}`);
+          console.warn(`[Related Products] No images found in asset JSON for ${productId}`);
           return { ...product, imageUrl: '' };
         }
 
-        // Find main image or use first image
-        let mainIndex = extractedMedia.findIndex(item => item.filename.toLowerCase().includes('main'));
-        if (mainIndex === -1) mainIndex = 0;
+        // Sort media: Images first, Videos always at the end (same as product-details.js line 96-99)
+        const imagesList = extractedMedia.filter(item => item.type === 'image');
+        const videosList = extractedMedia.filter(item => item.type === 'video');
+        const sortedMediaItems = [...imagesList, ...videosList];
 
-        mainImageUrl = extractedMedia[mainIndex].url;
+        // Find main image (same as product-details.js line 101-104)
+        let mainIndex = sortedMediaItems.findIndex(item => item.type === 'image' && item.url.toLowerCase().includes('main'));
+        if (mainIndex === -1) {
+          mainIndex = sortedMediaItems.findIndex(item => item.type === 'image');
+          if (mainIndex === -1) mainIndex = 0;
+        }
+
+        mainImageUrl = sortedMediaItems[mainIndex] ? sortedMediaItems[mainIndex].url : '';
+
+        console.log(`[Related Products] Selected image URL for ${productId}: ${mainImageUrl}`);
 
       } catch (error) {
-        console.error(`[Related Products] Error fetching images for ${productId}:`, error);
+        console.error(`[Related Products] Error fetching asset for ${productId}:`, error);
+        return { ...product, imageUrl: '' };
       }
 
       return {
