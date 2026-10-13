@@ -165,7 +165,7 @@ export default async function decorate(block) {
           <div class="related-card">
             <a href="?id=${encodeURIComponent(productId)}">
               <div class="related-img-wrap">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${productName}" loading="lazy" />` : '<div class="no-image">No Image</div>'}
+                <img src="${imageUrl || ''}" alt="${productName}" loading="lazy" />
               </div>
               <div class="related-info">
                 <div class="related-name">${productName}</div>
