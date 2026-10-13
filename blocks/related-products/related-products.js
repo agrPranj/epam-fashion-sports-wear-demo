@@ -8,11 +8,8 @@ export default async function decorate(block) {
     return;
   }
 
-  console.log('[Related Products] Current product ID:', currentProductId);
-
   // 2. Fetch all products data
-  const productsUrl = '/data/products-data.json?sheet=en';
-  const response = await fetch(productsUrl);
+  const response = await fetch('/data/products-data.json?sheet=en');
   if (!response.ok) {
     block.innerHTML = '<div class="related-error">Failed to load related products.</div>';
     return;
@@ -34,9 +31,6 @@ export default async function decorate(block) {
   const currentCategory = (currentProduct.category || currentProduct.Category || '').toLowerCase();
   const currentSubcategory = (currentProduct.subcategory || currentProduct.Subcategory || currentProduct.subCategory || currentProduct.SubCategory || '').toLowerCase();
 
-  console.log('[Related Products] Current category:', currentCategory);
-  console.log('[Related Products] Current subcategory:', currentSubcategory);
-
   // 4. Filter related products with priority:
   //    Priority 1: Same subcategory (best match)
   //    Priority 2: Same category (if subcategory not found or not enough)
@@ -55,8 +49,6 @@ export default async function decorate(block) {
     });
   }
 
-  console.log('[Related Products] Found by subcategory:', related.length);
-
   // Priority 2: If less than 4 found, add products from same category
   if (related.length < 4) {
     const categoryMatches = products.filter(p => {
@@ -71,8 +63,6 @@ export default async function decorate(block) {
 
     related = [...related, ...categoryMatches];
   }
-
-  console.log('[Related Products] After category matches:', related.length);
 
   // Priority 3: If still less than 4, add any other products
   if (related.length < 4) {
@@ -89,25 +79,90 @@ export default async function decorate(block) {
   // 5. Limit to 4 related products
   related = related.slice(0, 4);
 
-  console.log('[Related Products] Final count:', related.length);
+  // 6. Fetch images from Adobe AEM DAM for each product (same as product-details)
+  const productsWithImages = await Promise.all(
+    related.map(async (product) => {
+      const productId = product.id || product.ID || '';
+      const productName = product.name || product.Name || 'Product';
 
-  // 6. Render the related products grid
+      // Format ID for path (same as product-details)
+      const formattedIdForPath = productId.toLowerCase().replace(/\./g, '-');
+      const assetJsonUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}.1.json`;
+
+      let mainImageUrl = '';
+
+      try {
+        const assetResponse = await fetch(assetJsonUrl);
+        if (!assetResponse.ok) {
+          console.warn(`[Related Products] Failed to fetch asset JSON for ${productId}: ${assetResponse.status}`);
+          return { ...product, imageUrl: '' };
+        }
+
+        const assetJson = await assetResponse.json();
+
+        // Extract assets from JSON keys (same logic as product-details)
+        const assetBaseUrl = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${formattedIdForPath}`;
+        const imageExtensions = /\.(jpg|jpeg|png|webp|gif|svg)$/i;
+
+        const extractedMedia = [];
+        const processedUrls = new Set();
+
+        const scanObjectForKeys = (obj) => {
+          if (!obj || typeof obj !== 'object') return;
+          Object.entries(obj).forEach(([key, val]) => {
+            const trimmedKey = key.trim();
+            if (imageExtensions.test(trimmedKey)) {
+              const fullUrl = `${assetBaseUrl}/${trimmedKey}`;
+              if (!processedUrls.has(fullUrl)) {
+                processedUrls.add(fullUrl);
+                extractedMedia.push({
+                  url: fullUrl,
+                  filename: trimmedKey,
+                });
+              }
+            }
+            if (typeof val === 'object' && val !== null) {
+              scanObjectForKeys(val);
+            }
+          });
+        };
+
+        scanObjectForKeys(assetJson);
+
+        if (extractedMedia.length === 0) {
+          console.warn(`[Related Products] No images found for ${productId}`);
+          return { ...product, imageUrl: '' };
+        }
+
+        // Find main image or use first image
+        let mainIndex = extractedMedia.findIndex(item => item.filename.toLowerCase().includes('main'));
+        if (mainIndex === -1) mainIndex = 0;
+
+        mainImageUrl = extractedMedia[mainIndex].url;
+
+      } catch (error) {
+        console.error(`[Related Products] Error fetching images for ${productId}:`, error);
+      }
+
+      return {
+        ...product,
+        imageUrl: mainImageUrl
+      };
+    })
+  );
+
+  // 7. Render the related products grid
   block.innerHTML = `
     <h2 class="related-title">Related Products</h2>
     <div class="related-grid">
-      ${related.map(product => {
+      ${productsWithImages.map(product => {
         const productId = (product.id || product.ID || '').toString().trim();
         const productName = (product.name || product.Name || 'Product').toString();
         const productPrice = product.price || product.Price || '0.00';
-
-        // Get image URL from product data (same as product-grid)
-        const image = product.image || product.Image || '';
-        const imageUrl = image ? new URL(image, new URL(productsUrl, window.location.href)).href : '';
-
-        console.log('[Related Products] Product:', productId, '| Image:', imageUrl);
+        const imageUrl = product.imageUrl || '';
 
         return `
-          <div class="related-card" data-product-id="${productId}">
+          <div class="related-card">
             <a href="?id=${encodeURIComponent(productId)}">
               <div class="related-img-wrap">
                 ${imageUrl ? `<img src="${imageUrl}" alt="${productName}" loading="lazy" />` : '<div class="no-image">No Image</div>'}
