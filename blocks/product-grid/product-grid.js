@@ -62,7 +62,7 @@ export default function decorate(block) {
     const id = product.id || product.ID;
     const name = product.name || product.Name;
     const price = product.price ?? product.Price;
-    const image = product.image || product.Image;
+    const image = product.image || product.Image || product.images || product.Images;
     const category = product.category || product.Category;
     const subCategory = product.subCategory || product.subcategory
       || product.SubCategory || product.Subcategory;
