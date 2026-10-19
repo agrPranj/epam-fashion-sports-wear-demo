@@ -106,7 +106,7 @@ console.log(rawItems);
 
     const result = await ollamaResponse.json();
     let recommendedPaths = [];
-
+    console.log(result);
     try {
       const cleanedResponse = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
       recommendedPaths = JSON.parse(cleanedResponse);
