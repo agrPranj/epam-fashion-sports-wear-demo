@@ -31,8 +31,8 @@ export default async function decorate(block) {
     //}
 
     //const currentImageUrl = mainImg.src.split('?')[0]; // remove query params if any
-    const currentImageUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
-    const currentMetaJsonUrl = `${currentImageUrl}.2.json`;
+    // const currentImageUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
+    const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
 
     // 2. Fetch current product metadata
     statusEl.textContent = "Analyzing current product tags...";
