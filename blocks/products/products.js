@@ -23,22 +23,20 @@ export default async function decorate(block) {
   const statusEl = container.querySelector('.agent-status');
 
   try {
-    // 1. Automatically get current product metadata JSON endpoint from the page image
-    //const mainImg = document.querySelector('.product-details-image img, .main-image img');
-    //if (!mainImg) {
-      //statusEl.textContent = "Product image not found on page.";
-      //return;
-    //}
 
-    //const currentImageUrl = mainImg.src.split('?')[0]; // remove query params if any
-    // const currentImageUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
-    const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
+        const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
 
     // 2. Fetch current product metadata
     statusEl.textContent = "Analyzing current product tags...";
     const currentMeta = await fetchJSON(currentMetaJsonUrl);
     console.log(currentMeta);
-    const targetSubject = currentMeta?.['autogen:subject'] || currentMeta?.['dc:subject'];
+
+    // Direct and nested extraction for autogen:subject
+    const targetSubject =
+      currentMeta?.['autogen:subject'] ||
+      currentMeta?.['jcr:content']?.['metadata']?.['autogen:subject'] ||
+      currentMeta?.['metadata']?.['autogen:subject'];
+
     console.log(targetSubject);
     if (!targetSubject) {
       statusEl.textContent = "No AI tags found for comparison.";
@@ -62,8 +60,8 @@ export default async function decorate(block) {
     const catalogSummary = items.map(item => ({
       name: item.name || 'Product',
       path: item.path || item.url,
-      subject: item['autogen:subject'] || item['dc:subject'] || 'none',
-      price: item.price || '39.20' // Fallback sample price if not present in JSON
+      subject: item['autogen:subject'] || item['jcr:content']?.['metadata']?.['autogen:subject'] || 'none',
+      price: item.price || '39.20'
     }));
 
     const prompt = `
@@ -79,7 +77,7 @@ export default async function decorate(block) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: "llama2", // Make sure this model is pulled in your local Ollama
+        model: "llama3", // Make sure this model is pulled in your local Ollama
         prompt: prompt,
         stream: false
       })
@@ -100,9 +98,8 @@ export default async function decorate(block) {
     // 5. Filter the items based on Ollama's recommendations
     const matchedProducts = items.filter(item =>
       recommendedPaths.includes(item.path) || recommendedPaths.includes(item.name)
-    ).slice(0, 4); // Limit to 4 items
+    ).slice(0, 4);
 
-    // Fallback if AI returns empty or unmatched list
     const finalProducts = matchedProducts.length > 0 ? matchedProducts : items.slice(0, 4);
 
     // 6. Render results automatically
@@ -124,7 +121,6 @@ function renderProducts(container, products) {
     const card = document.createElement('div');
     card.className = 'product-card';
 
-    // Fallback price generator if price isn't in JSON metadata
     const price = prod.price || '39.20';
     const title = prod.name || 'Product Title';
     const imageSrc = prod.path || prod.url || '';
