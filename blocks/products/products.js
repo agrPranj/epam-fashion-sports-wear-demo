@@ -37,7 +37,7 @@ export default async function decorate(block) {
     // 2. Fetch current product metadata
     statusEl.textContent = "Analyzing current product tags...";
     const currentMeta = await fetchJSON(currentMetaJsonUrl);
-    console.log("Metadata " + currentMeta);
+    console.log(currentMeta);
     const targetSubject = currentMeta?.['autogen:subject'] || currentMeta?.['dc:subject'];
     console.log(targetSubject);
     if (!targetSubject) {
