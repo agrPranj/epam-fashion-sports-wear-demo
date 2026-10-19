@@ -98,7 +98,7 @@ console.log(rawItems);
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: "llama3", // Ensure model is available in your local Ollama
+        model: "llama2", // Ensure model is available in your local Ollama
         prompt: prompt,
         stream: false
       })
@@ -106,6 +106,7 @@ console.log(rawItems);
 
     const result = await ollamaResponse.json();
     let recommendedPaths = [];
+    console.log("-----------------");
     console.log(result);
     try {
       const cleanedResponse = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
