@@ -24,11 +24,11 @@ export default async function decorate(block) {
 
   try {
     // 1. Automatically get current product metadata JSON endpoint from the page image
-    const mainImg = document.querySelector('.product-details-image img, .main-image img');
-    if (!mainImg) {
-      statusEl.textContent = "Product image not found on page.";
-      return;
-    }
+    //const mainImg = document.querySelector('.product-details-image img, .main-image img');
+    //if (!mainImg) {
+      //statusEl.textContent = "Product image not found on page.";
+      //return;
+    //}
 
     //const currentImageUrl = mainImg.src.split('?')[0]; // remove query params if any
     const currentImageUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
