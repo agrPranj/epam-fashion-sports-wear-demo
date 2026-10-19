@@ -37,8 +37,9 @@ export default async function decorate(block) {
     // 2. Fetch current product metadata
     statusEl.textContent = "Analyzing current product tags...";
     const currentMeta = await fetchJSON(currentMetaJsonUrl);
+    console.log("Metadata " + currentMeta);
     const targetSubject = currentMeta?.['autogen:subject'] || currentMeta?.['dc:subject'];
-
+    console.log(targetSubject);
     if (!targetSubject) {
       statusEl.textContent = "No AI tags found for comparison.";
       return;
