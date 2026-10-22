@@ -98,13 +98,13 @@ export default async function decorate(block) {
     statusEl.textContent = "AI Agent is comparing tags and finding related products...";
 
     const prompt = `
-      You are an AI fashion stylist agent.
-      The current product has the subject/tags: "${JSON.stringify(targetSubject)}".
-      Here is the list of catalog items extracted from the folder data with their respective subjects: ${JSON.stringify(catalogSummary)}
+          You are an AI fashion stylist agent.
+          The current product has the subject/tags: "${JSON.stringify(targetSubject)}".
+          Here is the list of catalog items extracted from the folder data with their image filenames and respective subjects: ${JSON.stringify(catalogSummary)}
 
-      Compare the tags recursively and select the top 4 most relevant items that match or complement this product.
-      Return ONLY a valid JSON array of strings containing the exact paths or names of the selected items. Do not include markdown formatting like \`\`\`json.
-    `;
+          Compare the tags recursively and select the top 4 most relevant items that match or complement this product.
+          Return ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., ["wp11-pink_main.jpg", "wp11-blue_main.jpg"]) of the selected items. Do not include markdown formatting like \`\`\`json.
+        `;
 
     let recommendedPaths = [];
 
