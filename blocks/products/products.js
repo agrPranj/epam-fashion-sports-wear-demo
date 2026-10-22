@@ -55,8 +55,6 @@ export default async function decorate(block) {
     statusEl.textContent = "Scanning catalog folder data...";
     const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
     const folderData = await fetchJSON(folderJsonUrl);
-
-    console.log("---Folder Data:");
     console.log(folderData);
 
     if (!folderData) {
@@ -64,61 +62,59 @@ export default async function decorate(block) {
       return;
     }
 
-    // 4. Extract image keys from the folder JSON (e.g. wp11-pink_main.jpg, etc.)
-    let rawItems = [];
-    if (folderData.entities) {
-      rawItems = folderData.entities;
-    } else if (folderData.items) {
-      rawItems = folderData.items;
-    } else {
-      // Filter keys that represent image assets or child objects
-      rawItems = Object.keys(folderData)
-        .filter(key => !key.startsWith('jcr:') && !key.startsWith('sling:') && typeof folderData[key] === 'object')
-        .map(key => ({ _key: key, ...folderData[key] }));
-    }
-    console.log("---new items");
-    console.log(rawItems);
+    // 4. & 5. Recursively find ALL image-named keys and extract their autogen:subject
+    const catalogSummary = [];
 
-    if (rawItems.length === 0) {
-      statusEl.textContent = "No items found in folder data.";
+    function extractImages(obj) {
+      if (!obj || typeof obj !== 'object') return;
+
+      for (const key of Object.keys(obj)) {
+        if (key.match(/\.(jpg|jpeg|png|webp)$/i)) {
+          const imageObj = obj[key];
+          const subject = deepFind(imageObj, 'autogen:subject') || 'none';
+          const path = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${key}`;
+
+          catalogSummary.push({
+            imageName: key,
+            path,
+            [key]: subject
+          });
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+          extractImages(obj[key]);
+        }
+      }
+    }
+
+    extractImages(folderData);
+
+    console.log("--------------");
+    console.log("Extracted Multiple Images:", catalogSummary);
+
+    if (catalogSummary.length === 0) {
+      statusEl.textContent = "No image items found in folder data.";
       return;
     }
 
-    // 5. Map catalog items, targeting image-named keys and deep-extracting autogen:subject
-    const catalogSummary = rawItems.map(item => {
-      const subject = deepFind(item, 'autogen:subject') || 'none';
-      const name = item.title || item.name || item._key || 'Product';
-
-      let path = item.path || item.url;
-      if (!path && item._key) {
-        path = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${item._key}`;
-      }
-
-      return { name, path, subject };
-    });
-    console.log("--------------");
-    console.log(catalogSummary);
-
-    // 6. Prompt Local Ollama AI Agent to compare and match relevant tags
+    // 6. Prompt Local Ollama AI Agent to return ONLY the image filenames
     statusEl.textContent = "AI Agent is comparing tags and finding related products...";
 
     const prompt = `
-          You are an AI fashion stylist agent.
-          The current product has the subject/tags: "${JSON.stringify(targetSubject)}".
-          Here is the list of catalog items extracted from the folder data with their image filenames and respective subjects: ${JSON.stringify(catalogSummary)}
+      You are an AI fashion stylist agent.
+      The current product has the subject/tags: "${JSON.stringify(targetSubject)}".
+      Here is the catalog of items with each image key mapping to its autogen:subject: ${JSON.stringify(catalogSummary)}
 
-          Compare the tags recursively and select the top 4 most relevant items that match or complement this product.
-          Return ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., ["wp11-pink_main.jpg", "wp11-blue_main.jpg"]) of the selected items. Do not include markdown formatting like \`\`\`json.
-        `;
+      Compare the tags recursively and select the top 4 most relevant items that match or complement this product.
+      Return ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., ["wp11-pink_main.jpg", "wp11-blue_main.jpg"]) of the selected items. Do not include markdown formatting like \`\`\`json.
+    `;
 
-    let recommendedPaths = [];
+    let recommendedImageNames = [];
 
     try {
       const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: "llama2", // Ensure this model is running in your local Ollama
+          model: "llama2",
           prompt: prompt,
           stream: false
         })
@@ -126,24 +122,24 @@ export default async function decorate(block) {
 
       const result = await ollamaResponse.json();
       const cleanedResponse = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
-      recommendedPaths = JSON.parse(cleanedResponse);
+      recommendedImageNames = JSON.parse(cleanedResponse);
     } catch (ollamaErr) {
       console.warn("Ollama unavailable, falling back to direct tag matching:", ollamaErr);
 
-      // FALLBACK: If Ollama isn't running, match items directly where subjects overlap/match
-      recommendedPaths = catalogSummary
+      recommendedImageNames = catalogSummary
         .filter(item => {
-          if (Array.isArray(item.subject) && Array.isArray(targetSubject)) {
-            return item.subject.some(tag => targetSubject.includes(tag));
+          const sub = item[item.imageName];
+          if (Array.isArray(sub) && Array.isArray(targetSubject)) {
+            return sub.some(tag => targetSubject.includes(tag));
           }
-          return item.subject === targetSubject;
+          return sub === targetSubject;
         })
-        .map(item => item.path);
+        .map(item => item.imageName);
     }
 
     // 7. Filter final matched products
     const matchedProducts = catalogSummary.filter(item =>
-      recommendedPaths.includes(item.path) || recommendedPaths.includes(item.name)
+      recommendedImageNames.includes(item.imageName)
     ).slice(0, 4);
 
     const finalProducts = matchedProducts.length > 0 ? matchedProducts : catalogSummary.slice(0, 4);
@@ -168,7 +164,7 @@ function renderProducts(container, products) {
     card.className = 'product-card';
 
     const price = prod.price || '39.20';
-    const title = prod.name || 'Product Title';
+    const title = prod.imageName || 'Product Title';
     const imageSrc = prod.path || '';
 
     card.innerHTML = `
