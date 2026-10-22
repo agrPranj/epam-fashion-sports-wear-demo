@@ -10,12 +10,26 @@ async function fetchJSON(url) {
   }
 }
 
+// Deep recursive helper to find a property (like 'autogen:subject') anywhere in a nested JSON object
+function deepFind(obj, targetKey) {
+  if (!obj || typeof obj !== 'object') return null;
+  if (obj[targetKey] !== undefined) return obj[targetKey];
+
+  for (const key of Object.keys(obj)) {
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      const result = deepFind(obj[key], targetKey);
+      if (result !== undefined && result !== null) return result;
+    }
+  }
+  return null;
+}
+
 // Automatically triggered by EDS runtime when the block loads on the page
 export default async function decorate(block) {
   block.innerHTML = `
     <div class="ai-agent-container">
       <h3>Related Products</h3>
-      <p class="agent-status">🤖 AI Agent is finding related products...</p>
+      <p class="agent-status">🤖 AI Agent is scanning folder metadata...</p>
     </div>
   `;
 
@@ -28,108 +42,113 @@ export default async function decorate(block) {
     // 2. Fetch current product metadata
     statusEl.textContent = "Analyzing current product tags...";
     const currentMeta = await fetchJSON(currentMetaJsonUrl);
-    console.log(currentMeta);
 
-    // Extract targetSubject from current product JSON
-    const targetSubject =
-      currentMeta?.['autogen:subject'] ||
-      currentMeta?.['jcr:content']?.['metadata']?.['autogen:subject'] ||
-      currentMeta?.['metadata']?.['autogen:subject'];
-
-      console.log(targetSubject);
+    // Extract targetSubject recursively from current product JSON
+    const targetSubject = deepFind(currentMeta, 'autogen:subject');
 
     if (!targetSubject) {
-      statusEl.textContent = "No AI tags found for comparison.";
+      statusEl.textContent = "No AI tags found for current product.";
       return;
     }
 
-    // 3. Fetch catalog folder JSON
-    statusEl.textContent = "Scanning catalog folder...";
+    // 3. Fetch catalog folder JSON (.4.json)
+    statusEl.textContent = "Scanning catalog folder data...";
     const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
     const folderData = await fetchJSON(folderJsonUrl);
-    console.log(folderData);
 
-    // Extract items whether AEM returns them as an array or as key-value child objects in .4.json
+    if (!folderData) {
+      statusEl.textContent = "Could not load folder catalog JSON.";
+      return;
+    }
+
+    // 4. Extract image keys from the folder JSON (e.g. wp11-pink_main.jpg, etc.)
     let rawItems = [];
-    if (folderData?.entities) {
+    if (folderData.entities) {
       rawItems = folderData.entities;
-    } else if (folderData?.items) {
+    } else if (folderData.items) {
       rawItems = folderData.items;
-    } else if (folderData) {
-      // In AEM folder JSON, child assets/folders are often keys directly on the object (excluding system keys starting with jcr: or sling:)
+    } else {
+      // Filter keys that represent image assets or child objects
       rawItems = Object.keys(folderData)
         .filter(key => !key.startsWith('jcr:') && !key.startsWith('sling:') && typeof folderData[key] === 'object')
         .map(key => ({ _key: key, ...folderData[key] }));
     }
 
-console.log(rawItems);
     if (rawItems.length === 0) {
-      statusEl.textContent = "No catalog items found in folder.";
+      statusEl.textContent = "No items found in folder data.";
       return;
     }
 
-    // Map folder items to a clean structure, extracting autogen:subject from nested jcr:content/metadata
+    // 5. Map catalog items, targeting image-named keys and deep-extracting autogen:subject
     const catalogSummary = rawItems.map(item => {
-      const subject =
-        item?.['autogen:subject'] ||
-        item?.['jcr:content']?.['metadata']?.['autogen:subject'] ||
-        item?.['metadata']?.['autogen:subject'] || 'none';
-
+      const subject = deepFind(item, 'autogen:subject') || 'none';
       const name = item.title || item.name || item._key || 'Product';
-      const path = item.path || item.url || (item._key ? `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${item._key}` : '');
+
+      let path = item.path || item.url;
+      if (!path && item._key) {
+        path = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${item._key}`;
+      }
 
       return { name, path, subject };
     });
-
+    console.log("--------------");
     console.log(catalogSummary);
-    // 4. Prompt Local Ollama AI Agent for Semantic Matching
-    statusEl.textContent = "AI Agent is reasoning and curating recommendations...";
+
+    // 6. Prompt Local Ollama AI Agent to compare and match relevant tags
+    statusEl.textContent = "AI Agent is comparing tags and finding related products...";
 
     const prompt = `
       You are an AI fashion stylist agent.
-      The current product has the subject/tags: "${targetSubject}".
-      Here is the list of catalog items with their subjects: ${JSON.stringify(catalogSummary)}
+      The current product has the subject/tags: "${JSON.stringify(targetSubject)}".
+      Here is the list of catalog items extracted from the folder data with their respective subjects: ${JSON.stringify(catalogSummary)}
 
-      Analyze the tags and select the top 4 most relevant items that match or complement this product.
+      Compare the tags recursively and select the top 4 most relevant items that match or complement this product.
       Return ONLY a valid JSON array of strings containing the exact paths or names of the selected items. Do not include markdown formatting like \`\`\`json.
     `;
 
-    const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: "llama2", // Ensure model is available in your local Ollama
-        prompt: prompt,
-        stream: false
-      })
-    });
-
-    const result = await ollamaResponse.json();
     let recommendedPaths = [];
-    console.log("-----------------");
-    console.log(result.response);
+
     try {
+      const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: "llama2", // Ensure this model is running in your local Ollama
+          prompt: prompt,
+          stream: false
+        })
+      });
+
+      const result = await ollamaResponse.json();
       const cleanedResponse = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
       recommendedPaths = JSON.parse(cleanedResponse);
-    } catch (parseErr) {
-      console.error("Failed to parse Ollama JSON:", result.response);
-      statusEl.textContent = "AI response parsing failed.";
-      return;
+    } catch (ollamaErr) {
+      console.warn("Ollama unavailable, falling back to direct tag matching:", ollamaErr);
+
+      // FALLBACK: If Ollama isn't running, match items directly where subjects overlap/match
+      recommendedPaths = catalogSummary
+        .filter(item => {
+          if (Array.isArray(item.subject) && Array.isArray(targetSubject)) {
+            return item.subject.some(tag => targetSubject.includes(tag));
+          }
+          return item.subject === targetSubject;
+        })
+        .map(item => item.path);
     }
 
-    // 5. Filter the items based on Ollama's recommendations
+    // 7. Filter final matched products
     const matchedProducts = catalogSummary.filter(item =>
       recommendedPaths.includes(item.path) || recommendedPaths.includes(item.name)
     ).slice(0, 4);
 
     const finalProducts = matchedProducts.length > 0 ? matchedProducts : catalogSummary.slice(0, 4);
 
-    // 6. Render results automatically
+    // 8. Render results automatically
     renderProducts(container, finalProducts);
 
   } catch (error) {
-    console.error("Ollama AI Agent error:", error);
-    statusEl.textContent = "Could not connect to local Ollama. Ensure OLLAMA_ORIGINS='*' is set.";
+    console.error("AI Agent error:", error);
+    statusEl.textContent = "Error processing AI recommendations.";
   }
 }
 
