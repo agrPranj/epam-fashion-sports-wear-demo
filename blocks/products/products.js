@@ -29,7 +29,7 @@ export default async function decorate(block) {
   block.innerHTML = `
     <div class="ai-agent-container">
       <h3>Related Products</h3>
-      <p class="agent-status">🤖 AI Agent is scanning folder metadata...</p>
+      <p class="agent-status">🤖 AI Agent is scanning catalog folders...</p>
     </div>
   `;
 
@@ -52,7 +52,7 @@ export default async function decorate(block) {
     }
 
     // 3. Fetch catalog folder JSON (.4.json)
-    statusEl.textContent = "Scanning catalog folder data...";
+    statusEl.textContent = "Scanning catalog folders...";
     const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
     const folderData = await fetchJSON(folderJsonUrl);
     console.log(folderData);
@@ -62,25 +62,38 @@ export default async function decorate(block) {
       return;
     }
 
-    // 4. & 5. Recursively find ALL image-named keys and extract their autogen:subject
+    // 4. & 5. Recursively traverse multiple folders, subfolders, and extract all image keys & autogen:subject
     const catalogSummary = [];
+    const baseUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms";
 
-    function extractImages(obj) {
-      if (!obj || typeof obj !== 'object') return;
+    function extractImages(node, currentSubfolder = "") {
+      if (!node || typeof node !== 'object') return;
 
-      for (const key of Object.keys(obj)) {
+      for (const key of Object.keys(node)) {
+        if (key.startsWith('jcr:') || key.startsWith('sling:')) continue;
+
+        const val = node[key];
+
+        // Check if the key is an image file
         if (key.match(/\.(jpg|jpeg|png|webp)$/i)) {
-          const imageObj = obj[key];
-          const subject = deepFind(imageObj, 'autogen:subject') || 'none';
-          const path = `https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/${key}`;
+          const subject = deepFind(val, 'autogen:subject') || 'none';
+          // Build path including subfolder if present
+          const path = currentSubfolder
+            ? `${baseUrl}/${currentSubfolder}/${key}`
+            : `${baseUrl}/${key}`;
 
           catalogSummary.push({
             imageName: key,
+            subfolder: currentSubfolder,
             path,
             [key]: subject
           });
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          extractImages(obj[key]);
+        }
+        // If it's a folder node (contains sub-keys or child objects), recurse further
+        else if (typeof val === 'object' && val !== null) {
+          // If this key represents a folder name (like 'llwp11-1-28'), append it to the subfolder path
+          const nextSubfolder = currentSubfolder ? `${currentSubfolder}/${key}` : key;
+          extractImages(val, nextSubfolder);
         }
       }
     }
@@ -88,20 +101,20 @@ export default async function decorate(block) {
     extractImages(folderData);
 
     console.log("--------------");
-    console.log("Extracted Multiple Images:", catalogSummary);
+    console.log("Extracted Multiple Folders & Images:", catalogSummary);
 
     if (catalogSummary.length === 0) {
-      statusEl.textContent = "No image items found in folder data.";
+      statusEl.textContent = "No image items found in catalog folders.";
       return;
     }
 
-    // 6. Prompt Local Ollama AI Agent to return ONLY the image filenames
+    // 6. Prompt Local Ollama AI Agent to compare and return matching image filenames
     statusEl.textContent = "AI Agent is comparing tags and finding related products...";
 
     const prompt = `
       You are an AI fashion stylist agent.
       The current product has the subject/tags: "${JSON.stringify(targetSubject)}".
-      Here is the catalog of items with each image key mapping to its autogen:subject: ${JSON.stringify(catalogSummary)}
+      Here is the catalog of items across all folders with each image key mapping to its autogen:subject: ${JSON.stringify(catalogSummary)}
 
       Compare the tags recursively and select the top 4 most relevant items that match or complement this product.
       Return ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., ["wp11-pink_main.jpg", "wp11-blue_main.jpg"]) of the selected items. Do not include markdown formatting like \`\`\`json.
