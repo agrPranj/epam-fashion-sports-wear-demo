@@ -56,6 +56,9 @@ export default async function decorate(block) {
     const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
     const folderData = await fetchJSON(folderJsonUrl);
 
+    console.log("---Folder Data:");
+    console.log(folderData);
+
     if (!folderData) {
       statusEl.textContent = "Could not load folder catalog JSON.";
       return;
@@ -73,6 +76,8 @@ export default async function decorate(block) {
         .filter(key => !key.startsWith('jcr:') && !key.startsWith('sling:') && typeof folderData[key] === 'object')
         .map(key => ({ _key: key, ...folderData[key] }));
     }
+    console.log("---new items");
+    console.log(rawItems);
 
     if (rawItems.length === 0) {
       statusEl.textContent = "No items found in folder data.";
