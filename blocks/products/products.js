@@ -10,7 +10,7 @@ async function fetchJSON(url) {
   }
 }
 
-// Deep recursive helper to find a property (like 'autogen:subject') anywhere in a nested JSON object
+// Deep recursive helper to find a property anywhere in a nested JSON object (fallback)
 function deepFind(obj, targetKey) {
   if (!obj || typeof obj !== 'object') return null;
   if (obj[targetKey] !== undefined) return obj[targetKey];
@@ -26,144 +26,176 @@ function deepFind(obj, targetKey) {
 
 // Automatically triggered by EDS runtime when the block loads on the page
 export default async function decorate(block) {
+  // 1. Render the initial block markup IMMEDIATELY so the page never goes blank
   block.innerHTML = `
     <div class="ai-agent-container">
       <h3>Related Products</h3>
-      <p class="agent-status">🤖 AI Agent is scanning catalog folders...</p>
+      <div class="recommendations-loading">
+        <p class="agent-status">🤖 AI Agent is finding related products...</p>
+      </div>
     </div>
   `;
 
   const container = block.querySelector('.ai-agent-container');
   const statusEl = container.querySelector('.agent-status');
 
-  try {
-    const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
+  // 2. Defer heavy AI operations using setTimeout so browser paints the page instantly
+  setTimeout(async () => {
+    try {
+      // Get current product metadata JSON endpoint from the page image
+      const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
+      // Fetch current product metadata
+      const currentMeta = await fetchJSON(currentMetaJsonUrl);
+      if (!currentMeta) {
+        statusEl.textContent = "Could not load current product metadata.";
+        return;
+      }
 
-    // 2. Fetch current product metadata
-    statusEl.textContent = "Analyzing current product tags...";
-    const currentMeta = await fetchJSON(currentMetaJsonUrl);
+      // Use AI (Ollama) to extract 'autogen:subject' as an array from currentMeta
+      let targetSubject = [];
+      const extractionPrompt = `
+        You are an AI metadata extraction agent.
+        Here is the raw metadata JSON of the current product: ${JSON.stringify(currentMeta)}
 
-    // Extract targetSubject recursively from current product JSON
-    const targetSubject = deepFind(currentMeta, 'autogen:subject');
+        Extract the 'autogen:subject' (or related subject/tag properties) from this JSON.
+        Return ONLY a valid JSON array of strings containing the tags/subjects found (e.g., ["green", "pants", "cargo"]). If none found, return an empty array []. Do not include markdown formatting like \`\`\`json.
+      `;
 
-    if (!targetSubject) {
-      statusEl.textContent = "No AI tags found for current product.";
-      return;
-    }
+      try {
+        const extractionResponse = await fetch('http://localhost:11434/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: "llama2",
+            prompt: extractionPrompt,
+            stream: false
+          })
+        });
 
-    // 3. Fetch catalog folder JSON (.4.json)
-    statusEl.textContent = "Scanning catalog folders...";
-    const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
-    const folderData = await fetchJSON(folderJsonUrl);
-    console.log(folderData);
+        const extractionResult = await extractionResponse.json();
+        const cleanedExtraction = extractionResult.response.trim().replace(/```json/g, '').replace(/```/g, '');
+        targetSubject = JSON.parse(cleanedExtraction);
+      } catch (aiExtractionErr) {
+        console.warn("AI extraction failed, falling back to deepFind:", aiExtractionErr);
+        const fallbackSubject = deepFind(currentMeta, 'autogen:subject');
+        targetSubject = Array.isArray(fallbackSubject) ? fallbackSubject : [fallbackSubject || 'general'];
+      }
 
-    if (!folderData) {
-      statusEl.textContent = "Could not load folder catalog JSON.";
-      return;
-    }
+      console.log("Extracted targetSubject");
+      console.log(targetSubject);
+      if (!targetSubject || targetSubject.length === 0) {
+        statusEl.textContent = "No valid AI tags found for current product.";
+        return;
+      }
 
-    // 4. & 5. Recursively traverse multiple folders, subfolders, and extract all image keys & autogen:subject
-    const catalogSummary = [];
-    const baseUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms";
+      // Fetch catalog folder JSON (.4.json)
+      const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
+      const folderData = await fetchJSON(folderJsonUrl);
 
-    function extractImages(node, currentSubfolder = "") {
-      if (!node || typeof node !== 'object') return;
+      if (!folderData) {
+        statusEl.textContent = "Could not load folder catalog JSON.";
+        return;
+      }
 
-      for (const key of Object.keys(node)) {
-        if (key.startsWith('jcr:') || key.startsWith('sling:')) continue;
+      console.log("folder data");
+      console.log(folderData);
 
-        const val = node[key];
+      // Recursively traverse folders/subfolders and map each image key to an array of its autogen:subject
+      const catalogSummary = [];
+      const baseUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms";
 
-        // Check if the key is an image file
-        if (key.match(/\.(jpg|jpeg|png|webp)$/i)) {
-          const subject = deepFind(val, 'autogen:subject') || 'none';
-          // Build path including subfolder if present
-          const path = currentSubfolder
-            ? `${baseUrl}/${currentSubfolder}/${key}`
-            : `${baseUrl}/${key}`;
+      function extractImages(node, currentSubfolder = "") {
+        if (!node || typeof node !== 'object') return;
 
-          catalogSummary.push({
-            imageName: key,
-            subfolder: currentSubfolder,
-            path,
-            [key]: subject
-          });
-        }
-        // If it's a folder node (contains sub-keys or child objects), recurse further
-        else if (typeof val === 'object' && val !== null) {
-          // If this key represents a folder name (like 'llwp11-1-28'), append it to the subfolder path
-          const nextSubfolder = currentSubfolder ? `${currentSubfolder}/${key}` : key;
-          extractImages(val, nextSubfolder);
+        for (const key of Object.keys(node)) {
+          if (key.startsWith('jcr:') || key.startsWith('sling:')) continue;
+
+          const val = node[key];
+
+          if (key.match(/\.(jpg|jpeg|png|webp)$/i)) {
+            let rawSubject = deepFind(val, 'autogen:subject') || [];
+            const subjectArray = Array.isArray(rawSubject) ? rawSubject : [rawSubject];
+
+            const path = currentSubfolder
+              ? `${baseUrl}/${currentSubfolder}/${key}`
+              : `${baseUrl}/${key}`;
+
+            catalogSummary.push({
+              imageName: key,
+              subfolder: currentSubfolder,
+              path,
+              [key]: subjectArray
+            });
+          } else if (typeof val === 'object' && val !== null) {
+            const nextSubfolder = currentSubfolder ? `${currentSubfolder}/${key}` : key;
+            extractImages(val, nextSubfolder);
+          }
         }
       }
+
+      extractImages(folderData);
+
+      if (catalogSummary.length === 0) {
+        statusEl.textContent = "No image items found in catalog folders.";
+        return;
+      }
+
+      // Prompt Local Ollama AI Agent to compare and return matching image filenames
+      const matchingPrompt = `
+        You are an AI fashion stylist agent.
+        The current product has the subject/tags array: "${JSON.stringify(targetSubject)}".
+        Here is the catalog of items across folders where each image filename maps to its autogen:subject array: ${JSON.stringify(catalogSummary)}
+
+        Compare the tags and select the top 4 most relevant items that match or complement this product.
+        Return ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., ["wp11-pink_main.jpg", "wp11-blue_main.jpg"]) of the selected items. Do not include markdown formatting like \`\`\`json.
+      `;
+
+      let recommendedImageNames = [];
+
+      try {
+        statusEl.textContent = "AI Agent is curating recommendations...";
+        const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: "llama2",
+            prompt: matchingPrompt,
+            stream: false
+          })
+        });
+
+        const result = await ollamaResponse.json();
+        const cleanedResponse = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
+        recommendedImageNames = JSON.parse(cleanedResponse);
+      } catch (ollamaErr) {
+        console.warn("Ollama matching unavailable, falling back to direct tag overlap matching:", ollamaErr);
+
+        recommendedImageNames = catalogSummary
+          .filter(item => {
+            const subArray = item[item.imageName];
+            if (Array.isArray(subArray) && Array.isArray(targetSubject)) {
+              return subArray.some(tag => targetSubject.includes(tag));
+            }
+            return false;
+          })
+          .map(item => item.imageName);
+      }
+
+      // Filter final matched products
+      const matchedProducts = catalogSummary.filter(item =>
+        recommendedImageNames.includes(item.imageName)
+      ).slice(0, 4);
+
+      const finalProducts = matchedProducts.length > 0 ? matchedProducts : catalogSummary.slice(0, 4);
+
+      // Render results dynamically once AI processing completes
+      renderProducts(container, finalProducts);
+
+    } catch (error) {
+      console.error("AI Agent error:", error);
+      statusEl.textContent = "Error processing AI recommendations.";
     }
-
-    extractImages(folderData);
-
-    console.log("--------------");
-    console.log("Extracted Multiple Folders & Images:", catalogSummary);
-
-    if (catalogSummary.length === 0) {
-      statusEl.textContent = "No image items found in catalog folders.";
-      return;
-    }
-
-    // 6. Prompt Local Ollama AI Agent to compare and return matching image filenames
-    statusEl.textContent = "AI Agent is comparing tags and finding related products...";
-
-    const prompt = `
-      You are an AI fashion stylist agent.
-      The current product has the subject/tags: "${JSON.stringify(targetSubject)}".
-      Here is the catalog of items across all folders with each image key mapping to its autogen:subject: ${JSON.stringify(catalogSummary)}
-
-      Compare the tags recursively and select the top 4 most relevant items that match or complement this product.
-      Return ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., ["wp11-pink_main.jpg", "wp11-blue_main.jpg"]) of the selected items. Do not include markdown formatting like \`\`\`json.
-    `;
-
-    let recommendedImageNames = [];
-
-    try {
-      const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: "llama2",
-          prompt: prompt,
-          stream: false
-        })
-      });
-
-      const result = await ollamaResponse.json();
-      const cleanedResponse = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
-      recommendedImageNames = JSON.parse(cleanedResponse);
-    } catch (ollamaErr) {
-      console.warn("Ollama unavailable, falling back to direct tag matching:", ollamaErr);
-
-      recommendedImageNames = catalogSummary
-        .filter(item => {
-          const sub = item[item.imageName];
-          if (Array.isArray(sub) && Array.isArray(targetSubject)) {
-            return sub.some(tag => targetSubject.includes(tag));
-          }
-          return sub === targetSubject;
-        })
-        .map(item => item.imageName);
-    }
-
-    // 7. Filter final matched products
-    const matchedProducts = catalogSummary.filter(item =>
-      recommendedImageNames.includes(item.imageName)
-    ).slice(0, 4);
-
-    const finalProducts = matchedProducts.length > 0 ? matchedProducts : catalogSummary.slice(0, 4);
-
-    // 8. Render results automatically
-    renderProducts(container, finalProducts);
-
-  } catch (error) {
-    console.error("AI Agent error:", error);
-    statusEl.textContent = "Error processing AI recommendations.";
-  }
+  }, 50); // Small 50ms delay lets the browser paint the page HTML immediately
 }
 
 // Render Helper matching your exact layout
