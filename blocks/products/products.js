@@ -39,10 +39,26 @@ export default async function decorate(block) {
   const container = block.querySelector('.ai-agent-container');
   const statusEl = container.querySelector('.agent-status');
 
-  // 2. Defer AI execution so the browser paints instantly
+  // 2. Defer execution so the browser paints instantly
   setTimeout(async () => {
     try {
+
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("id");
+      console.log(productId);
+      const cacheKey = `ai_related_products_${productId}`;
+
+      // 3. CHECK BROWSER CACHE FIRST (Instant load if cached)
+      const cachedData = localStorage.getItem(cacheKey);
+      if (cachedData) {
+        console.log("⚡ Loaded related products from browser cache.");
+        const parsedProducts = JSON.parse(cachedData);
+        renderProducts(container, parsedProducts);
+        return;
+      }
+
       const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
+
       const currentMeta = await fetchJSON(currentMetaJsonUrl);
       if (!currentMeta) {
         statusEl.textContent = "Could not load current product metadata.";
@@ -128,7 +144,6 @@ export default async function decorate(block) {
       } catch (aiSummaryErr) {
         console.warn("AI catalog summary fallback to JS recursive parser:", aiSummaryErr);
 
-        // Fallback JS parser if AI call fails
         function extractImages(node, currentSubfolder = "") {
           if (!node || typeof node !== 'object') return;
           for (const key of Object.keys(node)) {
@@ -199,6 +214,9 @@ export default async function decorate(block) {
       ).slice(0, 4);
 
       const finalProducts = matchedProducts.length > 0 ? matchedProducts : catalogSummary.slice(0, 4);
+
+      // 4. SAVE TO BROWSER CACHE for future page views
+      localStorage.setItem(cacheKey, JSON.stringify(finalProducts));
 
       // Render results dynamically
       renderProducts(container, finalProducts);
