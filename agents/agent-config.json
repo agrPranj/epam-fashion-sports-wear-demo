@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "agentName": "FashionStylistAgent",
+  "model": "llama2",
+  "endpoint": "http://localhost:11434/api/generate",
+  "tasks": {
+    "extract_tags": {
+      "prompt": "You are an AI metadata extraction agent.\nHere is the raw metadata JSON of the current product: {PRODUCT_META}\nExtract the 'autogen:subject' or related subject/tag properties from this JSON.\nReturn ONLY a valid JSON array of strings containing the tags/subjects found (e.g., [\"green\", \"pants\", \"cargo\"]). If none found, return []. Do not include markdown formatting like ```json."
+    },
+    "parse_catalog": {
+      "prompt": "You are an AI data formatting agent.\nHere is the raw folder JSON of the product catalog: {FOLDER_DATA}\nExtract all image filenames (ending in .jpg, .png, etc.) along with their subfolders and their respective 'autogen:subject' tags.\nReturn ONLY a valid JSON array of objects, where each object has:\n- \"imageName\": string (the exact image filename)\n- \"path\": string (constructed as {BASE_URL}/[subfolder if any]/[imageName])\n- \"[imageName]\": array of strings (the autogen:subject tags)\nExample format: [{\"imageName\": \"wp11-pink_main.jpg\", \"path\": \"{BASE_URL}/llwp11-1-28/wp11-pink_main.jpg\", \"wp11-pink_main.jpg\": [\"pink\", \"pants\"]}]\nDo not include markdown formatting like ```json."
+    },
+    "match_products": {
+      "prompt": "You are an AI fashion stylist agent.\nCurrent product tags: {TARGET_SUBJECTS}.\nCatalog summary: {CATALOG_SUMMARY}\nCompare the catalog items against the current product tags and select the top 4 most relevant items.\nReturn ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., [\"wp11-pink_main.jpg\", \"wp11-blue_main.jpg\"]). Do not include markdown formatting like ```json."
+    }
+  }
+}

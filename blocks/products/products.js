@@ -1,3 +1,5 @@
+import { ConfigDrivenAgent } from '../../agents/config-agent.js';
+
 // Helper to fetch JSON safely
 async function fetchJSON(url) {
   try {
@@ -10,7 +12,7 @@ async function fetchJSON(url) {
   }
 }
 
-// Deep recursive helper to find a property anywhere in a nested JSON object (fallback)
+// Deep recursive fallback helper
 function deepFind(obj, targetKey) {
   if (!obj || typeof obj !== 'object') return null;
   if (obj[targetKey] !== undefined) return obj[targetKey];
@@ -42,108 +44,69 @@ export default async function decorate(block) {
   // 2. Defer execution so the browser paints instantly
   setTimeout(async () => {
     try {
+      const mainImg = document.querySelector('.product-details-image img, .main-image img');
+      if (!mainImg) {
+        statusEl.textContent = "Product image not found on page.";
+        return;
+      }
 
-      const params = new URLSearchParams(window.location.search);
-      const productId = params.get("id");
-      console.log(productId);
-      const cacheKey = `ai_related_products_${productId}`;
+      const currentImageUrl = mainImg.src.split('?')[0];
+      const cacheKey = `config_agent_rec_${currentImageUrl}`;
 
       // 3. CHECK BROWSER CACHE FIRST (Instant load if cached)
       const cachedData = localStorage.getItem(cacheKey);
       if (cachedData) {
         console.log("⚡ Loaded related products from browser cache.");
-        const parsedProducts = JSON.parse(cachedData);
-        renderProducts(container, parsedProducts);
+        renderProducts(container, JSON.parse(cachedData));
         return;
       }
 
-      const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
+      // 4. Load Config-Driven Agent from JSON config
+      const agent = await ConfigDrivenAgent.load('/agents/agent-config.json');
+      if (!agent) {
+        statusEl.textContent = "Failed to initialize AI Agent.";
+        return;
+      }
 
+      const currentMetaJsonUrl = `${currentImageUrl}.2.json`;
       const currentMeta = await fetchJSON(currentMetaJsonUrl);
       if (!currentMeta) {
         statusEl.textContent = "Could not load current product metadata.";
         return;
       }
 
-      // Step 1: AI Call to extract target subject from current product metadata
-      let targetSubject = [];
-      const extractionPrompt = `
-        You are an AI metadata extraction agent.
-        Here is the raw metadata JSON of the current product: ${JSON.stringify(currentMeta)}
+      // Task 1: Extract target subject using Agent
+      statusEl.textContent = "Agent analyzing product tags...";
+      let targetSubject = await agent.executeTask('extract_tags', {
+        PRODUCT_META: currentMeta
+      });
 
-        Extract the 'autogen:subject' (or related subject/tag properties).
-        Return ONLY a valid JSON array of strings containing the tags/subjects found (e.g., ["green", "pants", "cargo"]). If none found, return []. Do not include markdown formatting like \`\`\`json.
-      `;
-
-      try {
-        const extractionResponse = await fetch('http://localhost:11434/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: "llama2",
-            prompt: extractionPrompt,
-            stream: false
-          })
-        });
-
-        const extractionResult = await extractionResponse.json();
-        const cleanedExtraction = extractionResult.response.trim().replace(/```json/g, '').replace(/```/g, '');
-        targetSubject = JSON.parse(cleanedExtraction);
-      } catch (aiErr) {
-        const fallbackSubject = deepFind(currentMeta, 'autogen:subject');
-        targetSubject = Array.isArray(fallbackSubject) ? fallbackSubject : [fallbackSubject || 'general'];
+      if (!targetSubject || targetSubject.length === 0) {
+        const fallback = deepFind(currentMeta, 'autogen:subject');
+        targetSubject = Array.isArray(fallback) ? fallback : [fallback || 'general'];
       }
 
-      console.log("Extracted target subject tags:");
-      console.log(targetSubject);
-
-      // Step 2: Fetch Catalog Folder JSON (.4.json)
+      // Fetch Catalog Folder JSON (.4.json)
       const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
       const folderData = await fetchJSON(folderJsonUrl);
-
-      console.log("folder data");
-      console.log(folderData);
 
       if (!folderData) {
         statusEl.textContent = "Could not load catalog folder JSON.";
         return;
       }
 
-      // Step 3: DEDICATED AI CALL to generate and structure the catalog summary
-      statusEl.textContent = "AI Agent is parsing catalog summary...";
-      let catalogSummary = [];
+      // Task 2: Parse Catalog Summary using Agent
+      statusEl.textContent = "Agent parsing catalog summary...";
       const baseUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms";
+      
+      let catalogSummary = await agent.executeTask('parse_catalog', {
+        FOLDER_DATA: folderData,
+        BASE_URL: baseUrl
+      });
 
-      const catalogSummaryPrompt = `
-        You are an AI data formatting agent.
-        Here is the raw folder JSON of the product catalog: ${JSON.stringify(folderData)}
-
-        Extract all image filenames (ending in .jpg, .png, etc.) along with their subfolders and their respective 'autogen:subject' tags.
-        Return ONLY a valid JSON array of objects, where each object has:
-        - "imageName": string (the exact image filename)
-        - "path": string (constructed as ${baseUrl}/[subfolder if any]/[imageName])
-        - "[imageName]": array of strings (the autogen:subject tags)
-        Example format: [{"imageName": "wp11-pink_main.jpg", "path": "${baseUrl}/llwp11-1-28/wp11-pink_main.jpg", "wp11-pink_main.jpg": ["pink", "pants"]}]
-        Do not include markdown formatting like \`\`\`json.
-      `;
-
-      try {
-        const summaryResponse = await fetch('http://localhost:11434/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: "llama2",
-            prompt: catalogSummaryPrompt,
-            stream: false
-          })
-        });
-
-        const summaryResult = await summaryResponse.json();
-        const cleanedSummary = summaryResult.response.trim().replace(/```json/g, '').replace(/```/g, '');
-        catalogSummary = JSON.parse(cleanedSummary);
-      } catch (aiSummaryErr) {
-        console.warn("AI catalog summary fallback to JS recursive parser:", aiSummaryErr);
-
+      // Fallback JS parser if AI parsing fails
+      if (!Array.isArray(catalogSummary) || catalogSummary.length === 0) {
+        catalogSummary = [];
         function extractImages(node, currentSubfolder = "") {
           if (!node || typeof node !== 'object') return;
           for (const key of Object.keys(node)) {
@@ -163,43 +126,19 @@ export default async function decorate(block) {
         extractImages(folderData);
       }
 
-      console.log("catalogSummary");
-      console.log(catalogSummary);
-
       if (!catalogSummary || catalogSummary.length === 0) {
         statusEl.textContent = "No items found in catalog.";
         return;
       }
 
-      // Step 4: AI Call to compare and match recommendations
-      statusEl.textContent = "AI Agent is curating recommendations...";
-      let recommendedImageNames = [];
+      // Task 3: Match Products using Agent
+      statusEl.textContent = "Agent curating recommendations...";
+      let recommendedImageNames = await agent.executeTask('match_products', {
+        TARGET_SUBJECTS: targetSubject,
+        CATALOG_SUMMARY: catalogSummary
+      });
 
-      const matchingPrompt = `
-        You are an AI fashion stylist agent.
-        Current product tags: ${JSON.stringify(targetSubject)}.
-        Catalog summary: ${JSON.stringify(catalogSummary)}
-
-        Compare the catalog items against the current product tags and select the top 4 most relevant items.
-        Return ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., ["wp11-pink_main.jpg", "wp11-blue_main.jpg"]). Do not include markdown formatting like \`\`\`json.
-      `;
-
-      try {
-        const aiResponse = await fetch('http://localhost:11434/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: "llama2",
-            prompt: matchingPrompt,
-            stream: false
-          })
-        });
-
-        const aiResult = await aiResponse.json();
-        const cleanedAiResponse = aiResult.response.trim().replace(/```json/g, '').replace(/```/g, '');
-        recommendedImageNames = JSON.parse(cleanedAiResponse);
-      } catch (aiMatchErr) {
-        console.warn("AI matching fallback to tag intersection:", aiMatchErr);
+      if (!Array.isArray(recommendedImageNames) || recommendedImageNames.length === 0) {
         recommendedImageNames = catalogSummary
           .filter(item => {
             const subArray = item[item.imageName];
@@ -209,13 +148,13 @@ export default async function decorate(block) {
       }
 
       // Filter final matched products
-      const matchedProducts = catalogSummary.filter(item =>
+      const matchedProducts = catalogSummary.filter(item => 
         recommendedImageNames.includes(item.imageName)
       ).slice(0, 4);
 
       const finalProducts = matchedProducts.length > 0 ? matchedProducts : catalogSummary.slice(0, 4);
 
-      // 4. SAVE TO BROWSER CACHE for future page views
+      // 5. Save to Browser Cache for Instant Future Loads
       localStorage.setItem(cacheKey, JSON.stringify(finalProducts));
 
       // Render results dynamically
@@ -237,8 +176,7 @@ function renderProducts(container, products) {
   products.forEach(prod => {
     const card = document.createElement('div');
     card.className = 'product-card';
-
-    const price = prod.price || '39.20';
+    
     const title = prod.imageName || 'Product Title';
     const imageSrc = prod.path || '';
 
@@ -246,7 +184,7 @@ function renderProducts(container, products) {
       <a href="${prod.path || '#'}">
         <img src="${imageSrc}" alt="${title}" loading="lazy" />
         <span class="product-title">${title}</span>
-        <span class="product-price">$${price}</span>
+        <span class="product-price">$39.20</span>
       </a>
     `;
     grid.appendChild(card);
