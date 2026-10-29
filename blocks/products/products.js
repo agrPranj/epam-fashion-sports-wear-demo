@@ -44,14 +44,11 @@ export default async function decorate(block) {
   // 2. Defer execution so the browser paints instantly
   setTimeout(async () => {
     try {
-      const mainImg = document.querySelector('.product-details-image img, .main-image img');
-      if (!mainImg) {
-        statusEl.textContent = "Product image not found on page.";
-        return;
-      }
 
-      const currentImageUrl = mainImg.src.split('?')[0];
-      const cacheKey = `config_agent_rec_${currentImageUrl}`;
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("id");
+      console.log(productId);
+      const cacheKey = `ai_related_products_${productId}`;
 
       // 3. CHECK BROWSER CACHE FIRST (Instant load if cached)
       const cachedData = localStorage.getItem(cacheKey);
@@ -68,7 +65,7 @@ export default async function decorate(block) {
         return;
       }
 
-      const currentMetaJsonUrl = `${currentImageUrl}.2.json`;
+      const currentMetaJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms/llwp11-1-28/wp11-green_main.jpg.2.json";
       const currentMeta = await fetchJSON(currentMetaJsonUrl);
       if (!currentMeta) {
         statusEl.textContent = "Could not load current product metadata.";
@@ -86,9 +83,15 @@ export default async function decorate(block) {
         targetSubject = Array.isArray(fallback) ? fallback : [fallback || 'general'];
       }
 
+      console.log("Extracted target subject tags:");
+      console.log(targetSubject);
+
       // Fetch Catalog Folder JSON (.4.json)
       const folderJsonUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms.4.json";
       const folderData = await fetchJSON(folderJsonUrl);
+
+      console.log("folder data");
+      console.log(folderData);
 
       if (!folderData) {
         statusEl.textContent = "Could not load catalog folder JSON.";
@@ -125,6 +128,9 @@ export default async function decorate(block) {
         }
         extractImages(folderData);
       }
+
+      console.log("catalogSummary");
+      console.log(catalogSummary);
 
       if (!catalogSummary || catalogSummary.length === 0) {
         statusEl.textContent = "No items found in catalog.";
