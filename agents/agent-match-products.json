@@ -8,7 +8,7 @@
   "tasks": {
     "match_products": {
       "description": "Matches and recommends products based on similarity",
-      "prompt": "You are an AI fashion stylist agent.\nCurrent product tags: {TARGET_SUBJECTS}.\nCatalog summary: {CATALOG_SUMMARY}\nCompare the catalog items against the current product tags and select the top 4 most relevant items.\nReturn ONLY a valid JSON array of strings containing ONLY the exact image filenames (e.g., [\"wp11-pink_main.jpg\", \"wp11-blue_main.jpg\"]). Do not include markdown formatting like ```json."
+      "prompt": "You are an AI fashion stylist agent.\nCurrent product tags: {TARGET_SUBJECTS}.\nCatalog summary: {CATALOG_SUMMARY}\nCompare the catalog items against the current product tags and select the top 4 most relevant items.\n\nIMPORTANT: Return ONLY a valid JSON array. No explanations, no markdown, no extra text.\nFormat: [\"wp11-pink_main.jpg\", \"wp11-blue_main.jpg\"]\nStart your response with [ and end with ]"
     }
   }
 }

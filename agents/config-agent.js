@@ -41,10 +41,29 @@ export class ConfigDrivenAgent {
       });
 
       const result = await response.json();
-      const cleaned = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
-      return JSON.parse(cleaned);
+      let cleaned = result.response.trim();
+
+      // Remove markdown code blocks
+      cleaned = cleaned.replace(/```json/g, '').replace(/```/g, '');
+
+      // Extract JSON array or object using regex
+      // Look for [...] or {...}
+      const jsonArrayMatch = cleaned.match(/\[[\s\S]*\]/);
+      const jsonObjectMatch = cleaned.match(/\{[\s\S]*\}/);
+
+      let jsonString = null;
+      if (jsonArrayMatch) {
+        jsonString = jsonArrayMatch[0];
+      } else if (jsonObjectMatch) {
+        jsonString = jsonObjectMatch[0];
+      } else {
+        jsonString = cleaned;
+      }
+
+      return JSON.parse(jsonString);
     } catch (error) {
       console.error(`[Agent Task: ${taskName}] Execution Error:`, error);
+      console.error(`Raw response:`, result?.response);
       return null;
     }
   }

@@ -8,7 +8,7 @@
   "tasks": {
     "extract_tags": {
       "description": "Extracts product tags from metadata JSON",
-      "prompt": "You are an AI metadata extraction agent.\nHere is the raw metadata JSON of the current product: {PRODUCT_META}\nExtract the 'autogen:subject' or related subject/tag properties from this JSON.\nReturn ONLY a valid JSON array of strings containing the tags/subjects found (e.g., [\"green\", \"pants\", \"cargo\"]). If none found, return []. Do not include markdown formatting like ```json."
+      "prompt": "You are an AI metadata extraction agent.\nHere is the raw metadata JSON of the current product: {PRODUCT_META}\nExtract the 'autogen:subject' or related subject/tag properties from this JSON.\n\nIMPORTANT: Return ONLY a valid JSON array. No explanations, no markdown, no extra text.\nFormat: [\"green\", \"pants\", \"cargo\"]\nIf none found, return []\nStart your response with [ and end with ]"
     }
   }
 }
