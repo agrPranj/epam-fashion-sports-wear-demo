@@ -29,7 +29,6 @@ export class ConfigDrivenAgent {
       prompt = prompt.replaceAll(placeholder, typeof value === 'string' ? value : JSON.stringify(value));
     }
 
-    let rawResponse = '';
     try {
       const response = await fetch(this.config.endpoint, {
         method: 'POST',
@@ -42,39 +41,10 @@ export class ConfigDrivenAgent {
       });
 
       const result = await response.json();
-      rawResponse = result.response || '';
-
-      // Clean the response
-      let cleaned = rawResponse.trim();
-
-      // Remove markdown code blocks
-      cleaned = cleaned.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-      // Extract JSON - try array first, then object
-      let jsonString = null;
-
-      // Match JSON array
-      const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
-      if (arrayMatch) {
-        jsonString = arrayMatch[0];
-      } else {
-        // Match JSON object
-        const objectMatch = cleaned.match(/\{[\s\S]*\}/);
-        if (objectMatch) {
-          jsonString = objectMatch[0];
-        } else {
-          // Use cleaned as-is
-          jsonString = cleaned;
-        }
-      }
-
-      console.log(`[${this.config.agentName}] Task: ${taskName}`);
-      console.log(`[${this.config.agentName}] Extracted JSON:`, jsonString.substring(0, 150));
-
-      return JSON.parse(jsonString);
+      const cleaned = result.response.trim().replace(/```json/g, '').replace(/```/g, '');
+      return JSON.parse(cleaned);
     } catch (error) {
-      console.error(`[${this.config.agentName}] Task '${taskName}' Error:`, error.message);
-      console.error(`[${this.config.agentName}] Raw LLM Response:`, rawResponse);
+      console.error(`[Agent Task: ${taskName}] Execution Error:`, error);
       return null;
     }
   }
