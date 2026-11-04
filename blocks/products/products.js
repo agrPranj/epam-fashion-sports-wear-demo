@@ -58,10 +58,18 @@ export default async function decorate(block) {
         return;
       }
 
-      // 4. Load Config-Driven Agent from JSON config
-      const agent = await ConfigDrivenAgent.load('/agents/agent-config.json');
-      if (!agent) {
-        statusEl.textContent = "Failed to initialize AI Agent.";
+      // 4. Load Three Separate Agents
+      console.log("🤖 Loading Agent 1: TagExtractionAgent...");
+      const agent1 = await ConfigDrivenAgent.load('/agents/agent-extract-tags.json');
+
+      console.log("🤖 Loading Agent 2: CatalogParserAgent...");
+      const agent2 = await ConfigDrivenAgent.load('/agents/agent-parse-catalog.json');
+
+      console.log("🤖 Loading Agent 3: ProductMatchingAgent...");
+      const agent3 = await ConfigDrivenAgent.load('/agents/agent-match-products.json');
+
+      if (!agent1 || !agent2 || !agent3) {
+        statusEl.textContent = "Failed to initialize AI Agents.";
         return;
       }
 
@@ -72,11 +80,20 @@ export default async function decorate(block) {
         return;
       }
 
-      // Task 1: Extract target subject using Agent
-      statusEl.textContent = "Agent analyzing product tags...";
-      let targetSubject = await agent.executeTask('extract_tags', {
-        PRODUCT_META: currentMeta
+      // ============================================
+      // AGENT 1: Extract target subject tags
+      // ============================================
+      statusEl.textContent = "🤖 Agent 1: Analyzing product tags...";
+      console.log("\n--- AGENT 1: TagExtractionAgent ---");
+      const step1Start = Date.now();
+
+      let targetSubject = await agent1.executeTask('extract_tags', {
+        PRODUCT_META: JSON.stringify(currentMeta)
       });
+
+      const step1Duration = Date.now() - step1Start;
+      console.log(`✓ Tags extracted: ${JSON.stringify(targetSubject)}`);
+      console.log(`  Duration: ${step1Duration}ms`);
 
       if (!targetSubject || targetSubject.length === 0) {
         const fallback = deepFind(currentMeta, 'autogen:subject');
@@ -98,14 +115,23 @@ export default async function decorate(block) {
         return;
       }
 
-      // Task 2: Parse Catalog Summary using Agent
-      statusEl.textContent = "Agent parsing catalog summary...";
+      // ============================================
+      // AGENT 2: Parse Catalog Summary
+      // ============================================
+      statusEl.textContent = "🤖 Agent 2: Parsing catalog...";
+      console.log("\n--- AGENT 2: CatalogParserAgent ---");
+      const step2Start = Date.now();
+
       const baseUrl = "https://publish-p24103-e71623.adobeaemcloud.com/content/dam/sportify/women/bottoms";
 
-      let catalogSummary = await agent.executeTask('parse_catalog', {
-        FOLDER_DATA: folderData,
+      let catalogSummary = await agent2.executeTask('parse_catalog', {
+        FOLDER_DATA: JSON.stringify(folderData),
         BASE_URL: baseUrl
       });
+
+      const step2Duration = Date.now() - step2Start;
+      console.log(`✓ Catalog parsed: ${catalogSummary?.length || 0} products found`);
+      console.log(`  Duration: ${step2Duration}ms`);
 
       // Fallback JS parser if AI parsing fails
       if (!Array.isArray(catalogSummary) || catalogSummary.length === 0) {
@@ -137,12 +163,35 @@ export default async function decorate(block) {
         return;
       }
 
-      // Task 3: Match Products using Agent
-      statusEl.textContent = "Agent curating recommendations...";
-      let recommendedImageNames = await agent.executeTask('match_products', {
-        TARGET_SUBJECTS: targetSubject,
-        CATALOG_SUMMARY: catalogSummary
+      // ============================================
+      // AGENT 3: Match Products (uses output from Agent 1 & Agent 2)
+      // ============================================
+      statusEl.textContent = "🤖 Agent 3: Matching products...";
+      console.log("\n--- AGENT 3: ProductMatchingAgent ---");
+      console.log(`Input from Agent 1 (tags): ${JSON.stringify(targetSubject)}`);
+      console.log(`Input from Agent 2 (catalog): ${catalogSummary.length} products`);
+
+      const step3Start = Date.now();
+
+      let recommendedImageNames = await agent3.executeTask('match_products', {
+        TARGET_SUBJECTS: JSON.stringify(targetSubject),
+        CATALOG_SUMMARY: JSON.stringify(catalogSummary)
       });
+
+      const step3Duration = Date.now() - step3Start;
+      console.log(`✓ Products matched: ${recommendedImageNames?.length || 0} recommendations`);
+      console.log(`  Recommendations: ${JSON.stringify(recommendedImageNames)}`);
+      console.log(`  Duration: ${step3Duration}ms`);
+
+      // ============================================
+      // PIPELINE SUMMARY
+      // ============================================
+      const totalDuration = step1Duration + step2Duration + step3Duration;
+      console.log("\n--- PIPELINE COMPLETE ---");
+      console.log(`Total execution time: ${totalDuration}ms`);
+      console.log(`Step 1 (Extract Tags): ${step1Duration}ms`);
+      console.log(`Step 2 (Parse Catalog): ${step2Duration}ms`);
+      console.log(`Step 3 (Match Products): ${step3Duration}ms`);
 
       if (!Array.isArray(recommendedImageNames) || recommendedImageNames.length === 0) {
         recommendedImageNames = catalogSummary
