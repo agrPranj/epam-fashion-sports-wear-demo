@@ -29,6 +29,7 @@ export class ConfigDrivenAgent {
       prompt = prompt.replaceAll(placeholder, typeof value === 'string' ? value : JSON.stringify(value));
     }
 
+    let rawResponse = '';
     try {
       const response = await fetch(this.config.endpoint, {
         method: 'POST',
@@ -41,29 +42,39 @@ export class ConfigDrivenAgent {
       });
 
       const result = await response.json();
-      let cleaned = result.response.trim();
+      rawResponse = result.response || '';
+
+      // Clean the response
+      let cleaned = rawResponse.trim();
 
       // Remove markdown code blocks
-      cleaned = cleaned.replace(/```json/g, '').replace(/```/g, '');
+      cleaned = cleaned.replace(/```json/gi, '').replace(/```/g, '').trim();
 
-      // Extract JSON array or object using regex
-      // Look for [...] or {...}
-      const jsonArrayMatch = cleaned.match(/\[[\s\S]*\]/);
-      const jsonObjectMatch = cleaned.match(/\{[\s\S]*\}/);
-
+      // Extract JSON - try array first, then object
       let jsonString = null;
-      if (jsonArrayMatch) {
-        jsonString = jsonArrayMatch[0];
-      } else if (jsonObjectMatch) {
-        jsonString = jsonObjectMatch[0];
+
+      // Match JSON array
+      const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        jsonString = arrayMatch[0];
       } else {
-        jsonString = cleaned;
+        // Match JSON object
+        const objectMatch = cleaned.match(/\{[\s\S]*\}/);
+        if (objectMatch) {
+          jsonString = objectMatch[0];
+        } else {
+          // Use cleaned as-is
+          jsonString = cleaned;
+        }
       }
+
+      console.log(`[${this.config.agentName}] Task: ${taskName}`);
+      console.log(`[${this.config.agentName}] Extracted JSON:`, jsonString.substring(0, 150));
 
       return JSON.parse(jsonString);
     } catch (error) {
-      console.error(`[Agent Task: ${taskName}] Execution Error:`, error);
-      console.error(`Raw response:`, result?.response);
+      console.error(`[${this.config.agentName}] Task '${taskName}' Error:`, error.message);
+      console.error(`[${this.config.agentName}] Raw LLM Response:`, rawResponse);
       return null;
     }
   }
