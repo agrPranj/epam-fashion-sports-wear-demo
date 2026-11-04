@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "agentName": "CatalogParserAgent",
+  "description": "Parses product catalog structure and extracts image metadata",
+  "type": "parsing-agent",
+  "model": "llama2",
+  "endpoint": "http://localhost:11434/api/generate",
+  "tasks": {
+    "parse_catalog": {
+      "description": "Parses product catalog and extracts image metadata",
+      "prompt": "You are an AI data formatting agent.\nHere is the raw folder JSON of the product catalog: {FOLDER_DATA}\nExtract all image filenames (ending in .jpg, .png, etc.) along with their subfolders and their respective 'autogen:subject' tags.\nReturn ONLY a valid JSON array of objects, where each object has:\n- \"imageName\": string (the exact image filename)\n- \"path\": string (constructed as {BASE_URL}/[subfolder if any]/[imageName])\n- \"[imageName]\": array of strings (the autogen:subject tags)\n\nIMPORTANT: Return ONLY valid JSON. No explanations, no markdown, no extra text.\nExample: [{\"imageName\": \"wp11-pink_main.jpg\", \"path\": \"{BASE_URL}/llwp11-1-28/wp11-pink_main.jpg\", \"wp11-pink_main.jpg\": [\"pink\", \"pants\"]}]\nStart your response with [ and end with ]"
+    }
+  }
+}

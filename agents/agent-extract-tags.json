@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "agentName": "TagExtractionAgent",
+  "description": "Extracts product tags and metadata from product JSON",
+  "type": "extraction-agent",
+  "model": "llama2",
+  "endpoint": "http://localhost:11434/api/generate",
+  "tasks": {
+    "extract_tags": {
+      "description": "Extracts product tags from metadata JSON",
+      "prompt": "You are an AI metadata extraction agent.\nHere is the raw metadata JSON of the current product: {PRODUCT_META}\nExtract the 'autogen:subject' or related subject/tag properties from this JSON.\n\nIMPORTANT: Return ONLY a valid JSON array. No explanations, no markdown, no extra text.\nFormat: [\"green\", \"pants\", \"cargo\"]\nIf none found, return []\nStart your response with [ and end with ]"
+    }
+  }
+}
